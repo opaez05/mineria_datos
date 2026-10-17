@@ -8,12 +8,43 @@ El desarrollo sigue la metodología **CRISP-DM** (actualmente implementado hasta
 
 ## 📋 Estructura del Proyecto
 
-*   **`datos/`**: Carpeta que contiene los archivos originales en crudo (SIVIGILA históricos de 2017, 2018, 2019 y 2021; y catálogos/estaciones de IDEAM y SISMED).
-*   **`datos_procesados/`**: Carpeta donde se guarda el dataset integrado resultante y los gráficos del modelo. (Esta carpeta está excluida del control de versiones).
-*   **`analisis_inicial.py`**: Script de auditoría de volumen de datos inicial.
-*   **`obtener_sismed_filtrado.py`**: Script de análisis de calidad, estructura y nulos de los archivos de origen.
-*   **`preparacion_datos_mejorado.py`**: Proceso principal de ETL que unifica, limpia, simula el clima regional histórico de Colombia e integra las variables de salud y medicamentos.
-*   **`probar_modelo_desabastecimiento.py`**: Modelo predictivo piloto (`RandomForest`) que estima casos y evalúa el riesgo de inventario.
+El repositorio adopta el estándar **CRISP-DM** modular desacoplado en capas de ingeniería:
+
+```text
+PROYECTO/
+│
+├── main.py                               # Orquestador maestro único del pipeline
+├── README.md                             # Guía general de instalación y ejecución
+├── requirements.txt                      # Dependencias del proyecto
+│
+├── src/                                  # CÓDIGO FUENTE MODULARIZADO POR FASES
+│   ├── 01_ingesta/                       # Fase 1: Auditoría y calidad de datos crudos
+│   │   ├── analisis_inicial.py
+│   │   └── obtener_sismed_filtrado.py
+│   ├── 02_preparacion/                   # Fase 2: Integración y limpieza SIVIGILA + IDEAM + SISMED
+│   │   └── preparacion_datos_mejorado.py
+│   ├── 03_eda/                           # Fase 3: Análisis Exploratorio de Datos (Sesión 5)
+│   │   └── eda_proyecto.py
+│   ├── 04_transformacion/                # Fase 4: Escalamiento StandardScaler + RobustScaler
+│   │   ├── escalamiento.py
+│   │   └── transformacion.py
+│   └── 05_modelado/                      # Fase 5 & 6: ML RandomForest y Pronósticos 2027
+│       ├── probar_modelo_desabastecimiento.py
+│       └── prediccion_futura_2027.py
+│
+├── docs/                                 # DOCUMENTACIÓN TÉCNICA Y ACADÉMICA
+│   ├── index.md                          # Índice general de documentación
+│   ├── eda_sesion5.md                    # Guía técnica de la Sesión 5 (EDA)
+│   ├── Reporte_EDA_Sesion5.md            # Informe formal de laboratorio (Rúbrica PEA)
+│   └── Reporte_CRISP_DM.md               # Informe de auditoría CRISP-DM Fases 1 a 3
+│
+├── datos/                                # CAPA BRONZE: Fuentes crudas inmutables
+└── datos_procesados/                     # CAPA SILVER & GOLD: Datasets y artefactos derivados
+    ├── dataset_final_crisp_dm_mejorado.csv   # Dataset integrado (Silver)
+    ├── dataset_escalado_standard_robust.csv  # Dataset escalado (Gold)
+    ├── figuras/                          # Gráficas generadas organizadas por fase
+    └── reportes/                         # Reportes y métricas exportadas
+```
 
 ---
 
@@ -53,7 +84,28 @@ pip install -r requirements.txt
 
 ## 🚀 Flujo de Ejecución
 
-El proyecto cuenta con un flujo estructurado que puedes ejecutar paso a paso:
+El proyecto ofrece dos modalidades de ejecución:
+
+### Opción A: Ejecución Unificada con Orquestador Maestro (Recomendado)
+Puedes auditar el estado del linaje de datos, correr el pipeline completo de punta a punta o ejecutar cualquier fase individual sin memorizar scripts:
+
+```bash
+# Ver estado actual de datos y artefactos
+python main.py --status
+
+# Ejecutar el pipeline completo de principio a fin (End-to-End)
+python main.py --all
+
+# O ejecutar una fase puntual para defenderla en clase:
+python main.py --fase eda          # Sesión 5: Análisis Exploratorio de Datos
+python main.py --fase escalamiento # Fase 3: Escalamiento StandardScaler + RobustScaler
+python main.py --fase modelado     # Fase 4: Modelo RandomForest y alertas
+python main.py --fase prediccion   # Fase 5: Inferencia futura año 2027
+```
+
+---
+
+### Opción B: Ejecución Manual Paso a Paso (Trazabilidad Detallada)
 
 ### Paso 1: Auditoría Inicial de Datos
 Ejecuta este script para conocer el tamaño físico, número de filas y columnas de los archivos crudos en `datos/`:
@@ -73,6 +125,13 @@ Ejecuta el script principal que limpia la información, simula el clima históri
 python preparacion_datos_mejorado.py
 ```
 *Esto creará el archivo unificado en `datos_procesados/dataset_final_crisp_dm_mejorado.csv` con cerca de 60,000 registros.*
+
+### Paso 3.1: Análisis Exploratorio de Datos (EDA - Sesión 5)
+Ejecuta el análisis estadístico formal (tres familias de medidas, regla IQR, correlaciones y galería de 7 figuras):
+```bash
+python eda_proyecto.py
+```
+*Generará las figuras de alta resolución y los resúmenes estadísticos en `datos_procesados/`.*
 
 ### Paso 4: Ejecución del Modelo de Predicción y Riesgo
 Corre el modelo predictivo piloto para Dengue y evalúa si existen alertas de escasez de medicamentos:
