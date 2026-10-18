@@ -1,7 +1,7 @@
 # Guía Técnica: Análisis Exploratorio de Datos (EDA - Sesión 5)
 ## Fase 2 de CRISP-DM: Entendimiento de los Datos
 
-Este documento detalla la implementación y los resultados del análisis exploratorio formal ejecutado en el script [`eda_proyecto.py`](../eda_proyecto.py) sobre el dataset consolidado [`dataset_final_crisp_dm_mejorado.csv`](../datos_procesados/dataset_final_crisp_dm_mejorado.csv) (59,564 registros históricos).
+Este documento detalla la implementación y los resultados del análisis exploratorio formal ejecutado en el script [`src/03_eda/eda_proyecto.py`](../src/03_eda/eda_proyecto.py) sobre el dataset consolidado [`dataset_final_crisp_dm_mejorado.csv`](../datos_procesados/dataset_final_crisp_dm_mejorado.csv) (59,564 registros históricos).
 
 ---
 

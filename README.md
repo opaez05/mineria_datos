@@ -2,7 +2,7 @@
 
 Este proyecto de minería de datos tiene como objetivo analizar la correlación entre factores climáticos (temperatura, precipitación y humedad) y la ocurrencia de eventos epidemiológicos (como el Dengue y la Malaria) en los diferentes departamentos de Colombia. Con esta información, el sistema estima la demanda de medicamentos asociados para alertar de forma temprana sobre posibles riesgos de desabastecimiento.
 
-El desarrollo sigue la metodología **CRISP-DM** (actualmente implementado hasta la Fase 3: Preparación de Datos, con un piloto demostrativo para las Fases 4 y 5).
+El desarrollo sigue la metodología estándar **CRISP-DM** (implementado formalmente en sus fases de **Comprensión del Negocio, Comprensión de los Datos (EDA), Preparación/Escalamiento y Modelado Predictivo con Machine Learning**, contando adicionalmente con validación prospectiva de escenarios futuros 2027 y módulos de prototipado geoespacial).
 
 ---
 
@@ -17,26 +17,32 @@ PROYECTO/
 ├── README.md                             # Guía general de instalación y ejecución
 ├── requirements.txt                      # Dependencias del proyecto
 │
-├── src/                                  # CÓDIGO FUENTE MODULARIZADO POR FASES
+├── src/                                  # CÓDIGO FUENTE MODULARIZADO POR FASES CRISP-DM
 │   ├── 01_ingesta/                       # Fase 1: Auditoría y calidad de datos crudos
 │   │   ├── analisis_inicial.py
 │   │   └── obtener_sismed_filtrado.py
 │   ├── 02_preparacion/                   # Fase 2: Integración y limpieza SIVIGILA + IDEAM + SISMED
 │   │   └── preparacion_datos_mejorado.py
-│   ├── 03_eda/                           # Fase 3: Análisis Exploratorio de Datos (Sesión 5)
+│   ├── 03_eda/                           # Fase 2 (Entendimiento): Análisis Exploratorio de Datos (Sesión 5)
 │   │   └── eda_proyecto.py
-│   ├── 04_transformacion/                # Fase 4: Escalamiento StandardScaler + RobustScaler
+│   ├── 04_transformacion/                # Fase 3 (Preparación): Escalamiento StandardScaler + RobustScaler
 │   │   ├── escalamiento.py
 │   │   └── transformacion.py
-│   └── 05_modelado/                      # Fase 5 & 6: ML RandomForest y Pronósticos 2027
+│   └── 05_modelado/                      # Fase 4 & 5 (Modelado y Evaluación): ML RandomForest y Pronósticos 2027
 │       ├── probar_modelo_desabastecimiento.py
 │       └── prediccion_futura_2027.py
+│
+├── scripts/                              # MÓDULO DE EXPERIMENTACIÓN Y EXTENSIONES FUTURAS
+│   ├── ejemplo_mapa.py                   # Prototipo de georreferenciación interactiva (Plotly Express)
+│   ├── descarga_nasa.py                  # Conector de datos satelitales climáticos (NASA POWER API)
+│   ├── espiar_sismed.py                  # Utilitario de auditoría de catálogos SISMED
+│   └── prueba.py                         # Pruebas unitarias y de integración
 │
 ├── docs/                                 # DOCUMENTACIÓN TÉCNICA Y ACADÉMICA
 │   ├── index.md                          # Índice general de documentación
 │   ├── eda_sesion5.md                    # Guía técnica de la Sesión 5 (EDA)
 │   ├── Reporte_EDA_Sesion5.md            # Informe formal de laboratorio (Rúbrica PEA)
-│   └── Reporte_CRISP_DM.md               # Informe de auditoría CRISP-DM Fases 1 a 3
+│   └── Reporte_CRISP_DM.md               # Informe de auditoría CRISP-DM Fases 1 a 4
 │
 ├── datos/                                # CAPA BRONZE: Fuentes crudas inmutables
 └── datos_procesados/                     # CAPA SILVER & GOLD: Datasets y artefactos derivados
@@ -105,44 +111,52 @@ python main.py --fase prediccion   # Fase 5: Inferencia futura año 2027
 
 ---
 
-### Opción B: Ejecución Manual Paso a Paso (Trazabilidad Detallada)
+### Opción B: Ejecución Manual Paso a Paso (Modular en `src/`)
 
-### Paso 1: Auditoría Inicial de Datos
-Ejecuta este script para conocer el tamaño físico, número de filas y columnas de los archivos crudos en `datos/`:
+Si deseas inspeccionar o correr cada fase individualmente desde su módulo en `src/`:
+
+#### Paso 1: Auditoría Inicial de Datos
 ```bash
-python analisis_inicial.py
+python src/01_ingesta/analisis_inicial.py
 ```
 
-### Paso 2: Análisis de Calidad y Estructura
-Ejecuta este script para inspeccionar las columnas de los archivos clave e identificar el porcentaje de valores nulos:
+#### Paso 2: Análisis de Calidad y Estructura (SISMED)
 ```bash
-python obtener_sismed_filtrado.py
+python src/01_ingesta/obtener_sismed_filtrado.py
 ```
 
-### Paso 3: Preparación e Integración de Datos (ETL)
-Ejecuta el script principal que limpia la información, simula el clima histórico regional de Colombia por departamento y genera el dataset consolidado final:
+#### Paso 3: Preparación e Integración de Datos (ETL)
 ```bash
-python preparacion_datos_mejorado.py
+python src/02_preparacion/preparacion_datos_mejorado.py
 ```
 *Esto creará el archivo unificado en `datos_procesados/dataset_final_crisp_dm_mejorado.csv` con cerca de 60,000 registros.*
 
-### Paso 3.1: Análisis Exploratorio de Datos (EDA - Sesión 5)
-Ejecuta el análisis estadístico formal (tres familias de medidas, regla IQR, correlaciones y galería de 7 figuras):
+#### Paso 4: Análisis Exploratorio de Datos (EDA - Sesión 5)
 ```bash
-python eda_proyecto.py
+python src/03_eda/eda_proyecto.py
 ```
 *Generará las figuras de alta resolución y los resúmenes estadísticos en `datos_procesados/`.*
 
-### Paso 4: Ejecución del Modelo de Predicción y Riesgo
-Corre el modelo predictivo piloto para Dengue y evalúa si existen alertas de escasez de medicamentos:
+#### Paso 5: Escalamiento y Transformación
 ```bash
-python probar_modelo_desabastecimiento.py
+python src/04_transformacion/escalamiento.py
 ```
-*Este paso entrenará un modelo RandomForest y exportará un gráfico de alertas en `datos_procesados/grafica_riesgo_desabastecimiento.png`.*
 
-### Paso 5: Pronóstico de Escenarios Futuros (Ej: Año 2027)
-Ejecuta el script de predicciones para proyectar casos y riesgos de desabastecimiento de medicamentos en el año siguiente (2027) bajo condiciones meteorológicas estimadas:
+#### Paso 6: Ejecución del Modelo de Predicción y Riesgo
 ```bash
-python prediccion_futura_2027.py
+python src/05_modelado/probar_modelo_desabastecimiento.py
 ```
-*Este paso generará y exportará el gráfico de tendencia estacional para el año 2027 en `datos_procesados/pronostico_demanda_2027.png`.*
+
+#### Paso 7: Pronóstico de Escenarios Futuros (Ej: Año 2027)
+```bash
+python src/05_modelado/prediccion_futura_2027.py
+```
+
+---
+
+## 🔬 Scripts de Experimentación y Futuras Integraciones (`scripts/`)
+Prototipos y utilitarios auxiliares que amplían las capacidades del sistema analítico:
+- `scripts/ejemplo_mapa.py`: Prototipo de georreferenciación interactiva con Mapbox y Plotly Express.
+- `scripts/descarga_nasa.py`: Conector para la ingesta satelital climática vía NASA POWER API.
+- `scripts/espiar_sismed.py`: Utilitario para auditoría de esquemas del SISMED.
+

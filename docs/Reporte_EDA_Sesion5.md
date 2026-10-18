@@ -2,16 +2,6 @@
 ## Metodología CRISP-DM – Fase 2: Entendimiento de los Datos (Cierre Avance 1)
 ### Proyecto: Sistema Inteligente de Alerta Temprana para Predicción de Brotes Epidemiológicos y Prevención del Desabastecimiento de Medicamentos en Colombia
 
----
-
-## 1. Portada y Contexto del Negocio (10%)
-
-* **Institución:** Corporación Universitaria Minuto de Dios – UNIMINUTO (Sede Ibagué)
-* **Programa:** Ingeniería de Sistemas / Ciencias de la Computación – 8° Semestre
-* **Asignatura:** Minería de Datos
-* **Estudiante / Desarrollador:** Oscar Javier Páez y Equipo de Trabajo
-* **Docente:** Esteban Ernesto Morales Castro
-* **Fecha:** Octubre de 2026
 
 ### 1.1. Pregunta Central de Negocio
 > **¿De qué manera las fluctuaciones climáticas regionales (temperatura, precipitación y humedad relativa) inciden en la dinámica de propagación de enfermedades de transmisión vectorial (específicamente Dengue) en Colombia, y cómo impacta este comportamiento la demanda inducida de medicamentos esenciales para anticipar puntos críticos de desabastecimiento hospitalario en los diferentes departamentos?**
@@ -141,9 +131,9 @@ Siguiendo el estándar de evaluación exigido: **Hallazgo + Evidencia Estadísti
 ## 6. Anexos y Reproducibilidad Técnica (5%)
 
 Todo el análisis, cálculos matemáticos y figuras de alta resolución fueron generados mediante el script profesional reproducible:
-* **Script Principal:** [`eda_proyecto.py`](file:///c:/Users/oscar/Documents/UNIVERSIDAD/8.OCTAVO%20SEMESTRE/mineria_datos/PROYECTO/eda_proyecto.py)
-* **Dataset Fuente:** [`dataset_final_crisp_dm_mejorado.csv`](file:///c:/Users/oscar/Documents/UNIVERSIDAD/8.OCTAVO%20SEMESTRE/mineria_datos/PROYECTO/datos_procesados/dataset_final_crisp_dm_mejorado.csv)
-* **Figuras Exportadas:** Guardadas en formato PNG con resolución para publicación académica en [`datos_procesados/`](file:///c:/Users/oscar/Documents/UNIVERSIDAD/8.OCTAVO%20SEMESTRE/mineria_datos/PROYECTO/datos_procesados):
+* **Script Principal:** [`src/03_eda/eda_proyecto.py`](../src/03_eda/eda_proyecto.py)
+* **Dataset Fuente:** [`dataset_final_crisp_dm_mejorado.csv`](../datos_procesados/dataset_final_crisp_dm_mejorado.csv)
+* **Figuras Exportadas:** Guardadas en formato PNG con resolución para publicación académica en [`datos_procesados/`](../datos_procesados):
   1. `fig1_hist_casos_dengue.png` (Histograma con Media vs Mediana)
   2. `fig2_box_casos_outliers.png` (Boxplot horizontal con regla IQR y detección de brotes)
   3. `fig3_barras_departamentos_eventos.png` (Barras bivariadas ordenadas por frecuencia)
@@ -157,7 +147,10 @@ Todo el análisis, cálculos matemáticos y figuras de alta resolución fueron g
 # Activar entorno virtual
 .\.venv\Scripts\Activate.ps1
 
-# Ejecutar el pipeline de análisis exploratorio
-python eda_proyecto.py
+# Opción 1: Ejecutar directamente el módulo EDA
+python src/03_eda/eda_proyecto.py
+
+# Opción 2: Ejecutar mediante el orquestador CRISP-DM
+python main.py --fase eda
 ```
 El script se ejecuta de forma totalmente autónoma, sin abrir ventanas emergentes bloqueantes (`matplotlib.use('Agg')`), e imprime en consola la bitácora completa de resultados estadísticos.

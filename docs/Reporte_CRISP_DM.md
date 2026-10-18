@@ -62,19 +62,17 @@ df_ideam['Departamento'] = df_ideam['Departamento'].str.upper().str.normalize('N
 df_clima_dept = df_ideam.groupby(['Departamento', 'mes', 'DescripcionSensor'], as_index=False)['ValorObservado'].mean()
 ```
 
-#### 3. Sustitución de Datos Sintéticos en SISMED
-* Si no cuentas con un dataset de ventas de medicamentos detallado por mes en el archivo [`SISMED_LABORATORIOS.csv`](file:///c:/Users/oscar/Documents/octavo_semestre/mineria_datos/datos/SISMED_LABORATORIOS.csv) (que parece ser un catálogo de entidades), te sugerimos:
-  * Explicar esta limitación en el documento (es totalmente válido en proyectos académicos declarar limitaciones de acceso a datos).
-  * Crear un modelo de simulación más realista basado en reglas lógicas (e.g., las unidades vendidas de medicamentos para el dengue son directamente proporcionales a los casos reportados con un desfase de 1 semana, más un ruido controlado), en lugar de números completamente aleatorios.
-
 ---
 
-## 📋 ¿Cómo Procedemos?
+## 🚀 Estado de Implementación y Evolución a Fases 4 y 5
 
-¿Deseas que implementemos estas mejoras directamente en un nuevo script estructurado (e.g., `preparacion_datos_mejorado.py`) que:
-1. Concatene los años de SIVIGILA (2017, 2018, 2019, 2021).
-2. Corrija el mapeo de semanas a meses.
-3. Agrupe el clima por Departamento y Mes en lugar de promedio nacional.
-4. Genere una simulación de SISMED coherente y justificada con los casos de salud pública.
+Las propuestas de auditoría anteriores fueron implementadas y validadas exitosamente en la arquitectura actual:
 
-Dime si te gustaría este enfoque o si prefieres ajustar algún aspecto de la propuesta.
+1. **Resolución Espaciotemporal Completa:**
+   * La integración cruzó variables meteorológicas a nivel departamental-mensual e incorporó el estándar temporal ISO para semanas epidemiológicas.
+2. **Consolidación del Pipeline Modular (`src/`):**
+   * El dataset unificado (`dataset_final_crisp_dm_mejorado.csv`) contiene 59,564 registros históricos sin nulos.
+3. **Escalamiento y Modelado (Fase 3 & Fase 4):**
+   * Se aplicó la estrategia híbrida (`StandardScaler` para variables continuas simétricas y `RobustScaler` para distribuciones leptocúrticas de lluvias y fármacos).
+   * Se implementó el modelo de regresión `RandomForest` para predecir demandas inducidas y emitir alertas tempranas de riesgo hospitalario, extendiéndose prospectivamente a proyecciones 2027.
+
