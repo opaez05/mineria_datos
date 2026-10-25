@@ -67,10 +67,16 @@ FASES = {
         "nombre": "Inferencia de Escenarios Futuros (2027)",
         "scripts": ["src/05_modelado/prediccion_futura_2027.py"],
         "descripcion": "Simulación estacional y pronóstico de desabastecimiento para el año 2027."
+    },
+    "mapa": {
+        "numero": "Fase 7",
+        "nombre": "Visualización Geoespacial Interactiva (Mapa de Riesgo)",
+        "scripts": ["src/06_visualizacion/mapa_riesgo_interactivo.py"],
+        "descripcion": "Georreferenciación de los 32 departamentos y mapa interactivo OpenStreetMap."
     }
 }
 
-ORDEN_FASES = ["ingesta", "etl", "eda", "escalamiento", "modelado", "prediccion"]
+ORDEN_FASES = ["ingesta", "etl", "eda", "escalamiento", "modelado", "prediccion", "mapa"]
 
 def imprimir_banner():
     print("""
@@ -160,7 +166,8 @@ def main():
   eda          : Análisis Exploratorio de Datos (Sesión 5)
   escalamiento : Normalización StandardScaler y RobustScaler
   modelado     : Modelo RandomForest y alertas de desabastecimiento
-  prediccion   : Inferencia predictiva de escenarios futuros (2027)"""
+  prediccion   : Inferencia predictiva de escenarios futuros (2027)
+  mapa         : Visualización Geoespacial Interactiva (OpenStreetMap)"""
     )
     parser.add_argument(
         "--status",
@@ -180,6 +187,7 @@ def main():
             ("Figuras EDA (Sesión 5)", dp / "fig5_heatmap_correlaciones.png"),
             ("Gráfica Modelo Riesgo", dp / "grafica_riesgo_desabastecimiento.png"),
             ("Pronóstico Futuro 2027", dp / "pronostico_demanda_2027.png"),
+            ("Mapa Interactivo Colombia", dp / "mapa_desabastecimiento_colombia.html"),
         ]
         for nombre, ruta in archivos_clave:
             estado = "[OK]" if ruta.exists() else "[PENDIENTE]"
