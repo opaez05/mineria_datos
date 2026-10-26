@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Avance de Proyecto | Minería de Datos - opaez05/mineria_datos</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            slate: {
+              950: '#060913',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Estilos personalizados Dark Tech / Data Science */
+    body {
+      background-color: #060913;
+      color: #f1f5f9;
+      overflow-x: hidden;
+    }
+
+    /* Fondo de cuadrícula tecnológica sutil */
+    .bg-tech-grid {
+      background-size: 36px 36px;
+      background-image: 
+        linear-gradient(to right, rgba(56, 189, 248, 0.04) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(56, 189, 248, 0.04) 1px, transparent 1px);
+    }
+
+    /* Glassmorphism tarjetas */
+    .glass-card {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(148, 163, 184, 0.15);
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.6);
+    }
+
+    .glass-card-hover {
+      transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .glass-card-hover:hover {
+      border-color: rgba(34, 211, 238, 0.45);
+      transform: translateY(-2px);
+      box-shadow: 0 14px 34px -10px rgba(6, 182, 212, 0.2);
+    }
+
+    /* Transición de diapositivas */
+    .slide-section {
+      display: none;
+      opacity: 0;
+      transform: translateY(10px) scale(0.995);
+      transition: opacity 0.32s ease-out, transform 0.32s ease-out;
+    }
+    .slide-section.active {
+      display: flex;
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(56, 189, 248, 0.35);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(56, 189, 248, 0.6);
+    }
+
+    .glow-cyan {
+      box-shadow: 0 0 20px rgba(6, 182, 212, 0.28);
+    }
+    .glow-emerald {
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.25);
+    }
+    .glow-amber {
+      box-shadow: 0 0 20px rgba(245, 158, 11, 0.25);
+    }
+    .glow-rose {
+      box-shadow: 0 0 20px rgba(244, 63, 94, 0.25);
+    }
+  </style>
+</head>
+<body class="bg-tech-grid min-h-screen flex flex-col justify-between selection:bg-cyan-500 selection:text-slate-950">
+
+  <!-- Luces ambientales de fondo -->
+  <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
+    <div class="absolute -top-28 -left-28 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl"></div>
+    <div class="absolute top-1/3 -right-28 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl"></div>
+    <div class="absolute -bottom-28 left-1/3 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl"></div>
+  </div>
+
+  <!-- BARRA SUPERIOR DE PROGRESO Y CABECERA -->
+  <header class="relative z-30 border-b border-slate-800/80 bg-slate-950/85 backdrop-blur-md">
+    <!-- Barra de progreso dinámica -->
+    <div class="w-full h-1 bg-slate-900 overflow-hidden">
+      <div id="progressBar" class="h-full bg-gradient-to-r from-cyan-400 via-emerald-400 to-amber-400 transition-all duration-300" style="width: 12.5%;"></div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-3">
+      <!-- Identidad del Repositorio -->
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-emerald-500 flex items-center justify-center text-slate-950 font-bold shadow-md">
+          <i class="fa-solid fa-mosquito"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-mono text-xs font-semibold text-cyan-400 tracking-wider">mineria_datos</span>
+            <span class="text-[10px] font-mono uppercase px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/30">CRISP-DM</span>
+            <span class="hidden md:inline-block text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/30">Horizonte 2027</span>
+          </div>
+          <p class="text-xs text-slate-400">Oscar Mauricio Páez Cárdenas • Michael Steven Gutierrez Soto • Sustentación de Avance</p>
+        </div>
+      </div>
+
+      <!-- Indicadores de navegación rápida por puntos (8 diapositivas) -->
+      <nav class="hidden lg:flex items-center gap-1.5" aria-label="Selector de diapositivas">
+        <button onclick="goToSlide(0)" class="slide-dot w-7 h-7 rounded-lg font-mono text-xs font-semibold transition-all" title="1. Portada y Ecosistema">1</button>
+        <button onclick="goToSlide(1)" class="slide-dot w-7 h-7 rounded-lg font-mono text-xs font-semibold transition-all" title="2. EDA y Outliers (/img)">2</button>
+        <button onclick="goToSlide(2)" class="slide-dot w-7 h-7 rounded-lg font-mono text-xs font-semibold transition-all" title="3. Escalamiento & RobustScaler">3</button>
+        <button onclick="goToSlide(3)" class="slide-dot w-7 h-7 rounded-lg font-mono text-xs font-semibold transition-all" title="4. Evidencia Multivariada (/img)">4</button>
+        <button onclick="goToSlide(4)" class="slide-dot w-7 h-7 rounded-lg font-mono text-xs font-semibold transition-all" title="5. Árbol de Decisión Binario">5</button>
+        <button onclick="goToSlide(5)" class="slide-dot w-7 h-7 rounded-lg font-mono text-xs font-semibold transition-all" title="6. Múltiples Árboles (Random Forest)">6</button>
+        <button onclick="goToSlide(6)" class="slide-dot w-7 h-7 rounded-lg font-mono text-xs font-semibold transition-all" title="7. Decisiones Técnicas Tomadas">7</button>
+        <button onclick="goToSlide(7)" class="slide-dot w-7 h-7 rounded-lg font-mono text-xs font-semibold transition-all" title="8. Proyección 2027 y Conclusiones">8</button>
+      </nav>
+
+      <!-- Controles superiores: Cronómetro y Pantalla Completa -->
+      <div class="flex items-center gap-2">
+        <button onclick="toggleTimer()" id="timerBtn" class="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-xs font-mono text-slate-300 flex items-center gap-1.5 transition" title="Cronómetro de sustentación">
+          <i class="fa-regular fa-clock text-cyan-400"></i>
+          <span id="timerDisplay">00:00</span>
+        </button>
+
+        <button onclick="toggleFullScreen()" class="p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-slate-300 hover:text-cyan-400 text-xs transition" title="Pantalla Completa">
+          <i id="fullscreenIcon" class="fa-solid fa-expand"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- CONTENEDOR PRINCIPAL DE LAS 8 DIAPOSITIVAS -->
+  <main class="relative z-10 flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-10 py-3 overflow-y-auto">
+    <div class="w-full max-w-7xl mx-auto">
+
+      <!-- =========================================================
+           DIAPOSITIVA 1: PORTADA Y LOS 3 COMPONENTES CLAVE
+           ========================================================= -->
+      <section class="slide-section active flex-col justify-center min-h-[72vh]" data-slide="0">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+          <div class="lg:col-span-7 space-y-4">
+            <div class="inline-flex flex-wrap items-center gap-2 px-3 py-1 rounded-full bg-slate-900/90 border border-cyan-500/30 text-xs font-mono text-cyan-300">
+              <i class="fa-brands fa-github text-sm"></i>
+              <span>github.com/opaez05/mineria_datos</span>
+              <span class="text-slate-600">|</span>
+              <span class="text-emerald-400">Sustentación de Avance</span>
+            </div>
+
+            <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-tight text-white">
+              Predicción del Riesgo de <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-emerald-400 to-amber-400">Desabastecimiento de Medicamentos</span> ante Brotes de Dengue
+            </h1>
+
+            <p class="text-sm sm:text-base text-slate-300 leading-relaxed">
+              Modelado analítico reproducible que integra registros clínicos del dengue (SIVIGILA), disponibilidad de medicamentos (<span class="font-mono text-cyan-300">SISMED</span>) y clima satelital (<span class="font-mono text-amber-300">NASA POWER</span>) hacia el año <strong>2027</strong> bajo metodología <strong class="text-emerald-400 font-semibold">CRISP-DM</strong>.
+            </p>
+
+            <!-- Datos de autoría -->
+            <div class="flex flex-wrap items-center gap-3 pt-1">
+              <div class="glass-card px-3.5 py-2 rounded-xl flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-cyan-500/20 border border-cyan-400/40 flex items-center justify-center text-cyan-300 font-bold text-xs">
+                  OP
+                </div>
+                <div>
+                  <div class="text-[11px] text-slate-400">Estudiante / Autor</div>
+                  <div class="text-xs font-bold text-white">Oscar Mauricio Páez Cárdenas <span class="font-mono text-cyan-400">(@opaez05)</span></div>
+                  <div class="text-xs font-bold text-white">Michael Steven Gutierrez Soto <span class="font-mono text-cyan-400">(@MichaelGs27)</span></div>
+                </div>
+              </div>
+
+              <div class="glass-card px-3.5 py-2 rounded-xl flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-emerald-500/20 border border-emerald-400/40 flex items-center justify-center text-emerald-300 text-xs">
+                  <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <div>
+                  <div class="text-[11px] text-slate-400">Programa Académico</div>
+                  <div class="text-xs font-bold text-white">Ingeniería de Sistemas • Minería de Datos</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Columna Derecha: Los 3 Componentes Clave Evaluados por el Docente -->
+          <div class="lg:col-span-5">
+            <div class="glass-card rounded-2xl p-5 border border-cyan-500/30">
+              <div class="flex items-center justify-between mb-3 border-b border-slate-800 pb-2">
+                <span class="text-xs font-mono uppercase tracking-wider text-cyan-300 font-bold flex items-center gap-2">
+                  <i class="fa-solid fa-list-check"></i> Ejes Clave de Evaluación
+                </span>
+                <span class="text-[11px] font-mono text-slate-400">8 Diapositivas</span>
+              </div>
+
+              <div class="space-y-3">
+                <!-- Eje 1 -->
+                <div class="p-3 rounded-xl bg-slate-900/90 border border-purple-500/30 flex items-start gap-3">
+                  <div class="w-9 h-9 rounded-lg bg-purple-500/20 text-purple-300 font-mono font-bold flex items-center justify-center shrink-0 text-sm">
+                    01
+                  </div>
+                  <div>
+                    <h2 class="text-sm font-bold text-white">Escalamiento Robusto & Outliers Epidémicos</h2>
+                    <p class="text-xs text-slate-300 mt-0.5">
+                      Diagnóstico de asimetría positiva en casos de dengue y justificación técnica de <span class="font-mono text-purple-300 font-semibold">RobustScaler</span> (IQR/Mediana) para no sesgar el modelo ante brotes reales.
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Eje 2 -->
+                <div class="p-3 rounded-xl bg-slate-900/90 border border-emerald-500/30 flex items-start gap-3">
+                  <div class="w-9 h-9 rounded-lg bg-emerald-500/20 text-emerald-300 font-mono font-bold flex items-center justify-center shrink-0 text-sm">
+                    02
+                  </div>
+                  <div>
+                    <h2 class="text-sm font-bold text-white">Árboles de Decisión Binarios (≤ 4 Niveles)</h2>
+                    <p class="text-xs text-slate-300 mt-0.5">
+                      Árbol funcional con preguntas estrictas Sí/No según la especificación del docente y demostración de por qué <span class="font-mono text-emerald-300 font-semibold">múltiples árboles (Random Forest)</span> superan drásticamente a un solo árbol.
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Eje 3 -->
+                <div class="p-3 rounded-xl bg-slate-900/90 border border-amber-500/30 flex items-start gap-3">
+                  <div class="w-9 h-9 rounded-lg bg-amber-500/20 text-amber-300 font-mono font-bold flex items-center justify-center shrink-0 text-sm">
+                    03
+                  </div>
+                  <div>
+                    <h2 class="text-sm font-bold text-white">Decisiones Metodológicas & de Negocio Tomadas</h2>
+                    <p class="text-xs text-slate-300 mt-0.5">
+                      Sustentación de las decisiones tomadas en preparación de datos, selección de algoritmos, métricas de error y simulación de demanda hospitalaria (<span class="font-mono text-amber-300">Casos × 15</span>).
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between text-[11px] font-mono text-slate-400">
+                <span>Dataset: <span class="text-cyan-300">dataset_final_crisp_dm_mejorado.csv</span></span>
+                <span class="text-emerald-400">100% Código en /src</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================================================
+           DIAPOSITIVA 2: EDA Y OUTLIERS CON IMÁGENES REALES
+           ========================================================= -->
+      <section class="slide-section flex-col justify-center min-h-[72vh]" data-slide="1">
+        <div class="mb-3">
+          <div class="flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-amber-400 mb-0.5">
+            <span>Diapositiva 02</span>
+            <span>•</span>
+            <span>Comprensión de Datos (EDA)</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-white">
+            Distribución de Casos y Diagnóstico de Outliers
+          </h2>
+          <p class="text-xs sm:text-sm text-slate-400">
+            Evidencia gráfica real generada por <code class="text-cyan-300 font-mono">src/03_eda/eda_proyecto.py</code> en el directorio <code class="text-cyan-300 font-mono">img/</code>.
+          </p>
+        </div>
+
+        <!-- 2 Columnas con Gráficas Reales -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-3">
+          <!-- Figura 1 -->
+          <div class="glass-card glass-card-hover rounded-2xl p-4 flex flex-col justify-between border-l-4 border-l-cyan-400">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="font-mono text-xs text-cyan-300 font-bold flex items-center gap-1.5">
+                  <i class="fa-regular fa-image"></i> img/fig1_hist_casos_dengue.png
+                </span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">Asimetría Positiva</span>
+              </div>
+
+              <!-- Imagen Real de la gráfica -->
+              <div class="relative group cursor-pointer overflow-hidden rounded-xl border border-slate-800 bg-slate-950 flex items-center justify-center p-2 mb-2" onclick="openImageModal('img/fig1_hist_casos_dengue.png', 'Figura 1: Histograma y Distribución de Casos de Dengue', 'Presenta una distribución asimétrica severa hacia la derecha. La gran mayoría de registros reportan conteos basales, pero la cola larga representa los picos epidémicos críticos.')">
+                <img src="img/fig1_hist_casos_dengue.png" alt="Figura 1: Histograma de Casos de Dengue" class="h-44 sm:h-52 w-full object-contain group-hover:scale-105 transition duration-300" />
+                <div class="absolute inset-0 bg-slate-950/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-2 text-cyan-300 font-mono text-xs">
+                  <i class="fa-solid fa-magnifying-glass-plus"></i> Clic para ampliar en 4K
+                </div>
+              </div>
+
+              <h3 class="text-sm font-bold text-white mb-1">Hallazgo: Media &gt;&gt; Mediana (Sesgo Pronunciado)</h3>
+              <p class="text-xs text-slate-300 leading-relaxed">
+                El comportamiento del dengue no es gaussiano ni simétrico. Esta asimetría descarta de plano el uso de modelos lineales simples o escalamientos basados únicamente en la media sin tratamiento previo.
+              </p>
+            </div>
+          </div>
+
+          <!-- Figura 2 -->
+          <div class="glass-card glass-card-hover rounded-2xl p-4 flex flex-col justify-between border-l-4 border-l-rose-500">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="font-mono text-xs text-rose-300 font-bold flex items-center gap-1.5">
+                  <i class="fa-regular fa-image"></i> img/fig2_box_casos_outliers.png
+                </span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-rose-500/15 text-rose-300 border border-rose-500/30">Picos Epidémicos Reales</span>
+              </div>
+
+              <!-- Imagen Real de la gráfica -->
+              <div class="relative group cursor-pointer overflow-hidden rounded-xl border border-slate-800 bg-slate-950 flex items-center justify-center p-2 mb-2" onclick="openImageModal('img/fig2_box_casos_outliers.png', 'Figura 2: Boxplot e Identificación de Picos Epidémicos (Outliers)', 'Muestra la dispersión cuartílica y los puntos atípicos superiores que sobrepasan el límite de 1.5 veces el rango intercuartílico (IQR). Corresponden a brotes epidemiológicos departamentales reales.')">
+                <img src="img/fig2_box_casos_outliers.png" alt="Figura 2: Boxplot de Outliers" class="h-44 sm:h-52 w-full object-contain group-hover:scale-105 transition duration-300" />
+                <div class="absolute inset-0 bg-slate-950/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-2 text-rose-300 font-mono text-xs">
+                  <i class="fa-solid fa-magnifying-glass-plus"></i> Clic para ampliar en 4K
+                </div>
+              </div>
+
+              <h3 class="text-sm font-bold text-white mb-1">Hallazgo: Outliers son Brotes Epidémicos Severos</h3>
+              <p class="text-xs text-slate-300 leading-relaxed">
+                Los puntos que exceden $Q_3 + 1.5 \times \text{IQR}$ corresponden a emergencias sanitarias en departamentos como Valle del Cauca, Tolima y Santander.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tarjeta de Decisión Clave para el Docente -->
+        <div class="p-3.5 rounded-xl bg-slate-900/90 border border-emerald-500/40 flex items-start gap-3">
+          <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-300 flex items-center justify-center shrink-0 text-sm">
+            <i class="fa-solid fa-shield-halved"></i>
+          </div>
+          <div class="text-xs sm:text-sm">
+            <span class="font-bold text-emerald-300 uppercase font-mono text-xs tracking-wider">Decisión Metodológica Calificada:</span>
+            <span class="text-slate-200 ml-1">
+              <strong>NO eliminar los outliers</strong>. En epidemiología, podar estadísticamente estos registros atípicos borraría la señal biológica del brote (el quiebre de stock). Por ello, en lugar de borrarlos, se utiliza una técnica de escalamiento inmune a valores extremos: <strong class="text-cyan-300">RobustScaler</strong>.
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================================================
+           DIAPOSITIVA 3: COMPONENTE 1 - ESCALAMIENTO & ROBUSTSCALER
+           ========================================================= -->
+      <section class="slide-section flex-col justify-center min-h-[72vh]" data-slide="2">
+        <div class="mb-3">
+          <div class="flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-purple-400 mb-0.5">
+            <span>Diapositiva 03</span>
+            <span>•</span>
+            <span>Componente Clave 1 • Fase 3 CRISP-DM</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-white">
+            Escalamiento Híbrido: ¿Cómo y Por Qué Aplicamos RobustScaler?
+          </h2>
+          <p class="text-xs sm:text-sm text-slate-400">
+            Implementado en <code class="text-purple-300 font-mono">src/04_transformacion/escalamiento.py</code> para resolver la disparidad de magnitudes.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-3">
+          <!-- Columna Izquierda: El Problema de las Escalas Dispares -->
+          <div class="lg:col-span-4 glass-card rounded-2xl p-4 flex flex-col justify-between border-l-4 border-l-rose-500">
+            <div>
+              <span class="text-xs font-mono uppercase tracking-wider text-rose-400 font-bold flex items-center gap-1.5 mb-2">
+                <i class="fa-solid fa-triangle-exclamation"></i> Disparidad de Rangos Crudos
+              </span>
+              <p class="text-xs text-slate-300 leading-relaxed mb-3">
+                Las variables crudas integradas habitan en universos numéricos incompatibles:
+              </p>
+
+              <div class="space-y-2 text-xs font-mono">
+                <div class="p-2 rounded bg-slate-950 border border-slate-800 flex justify-between items-center">
+                  <span class="text-slate-300">Medicamentos_Vendidos</span>
+                  <span class="text-cyan-400 font-bold">5,000 – 400,000 u.</span>
+                </div>
+                <div class="p-2 rounded bg-slate-950 border border-slate-800 flex justify-between items-center">
+                  <span class="text-slate-300">Lluvias_Acumuladas</span>
+                  <span class="text-amber-400 font-bold">10 – 850 mm</span>
+                </div>
+                <div class="p-2 rounded bg-slate-950 border border-slate-800 flex justify-between items-center">
+                  <span class="text-slate-300">Temperatura_Promedio</span>
+                  <span class="text-emerald-400 font-bold">12 – 32 °C</span>
+                </div>
+                <div class="p-2 rounded bg-slate-950 border border-slate-800 flex justify-between items-center">
+                  <span class="text-slate-300">Humedad_Ambiente</span>
+                  <span class="text-purple-400 font-bold">35 – 96 %</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-3 p-2 rounded-lg bg-rose-500/10 border border-rose-500/30 text-[11px] text-rose-300">
+              <i class="fa-solid fa-ban mr-1"></i> Sin escalamiento, la variable de medicamentos aplasta matemáticamente el efecto climático del vector.
+            </div>
+          </div>
+
+          <!-- Columna Centro: La Fórmula y Ventaja de RobustScaler -->
+          <div class="lg:col-span-4 glass-card rounded-2xl p-4 flex flex-col justify-between border-t-4 border-t-purple-400">
+            <div>
+              <span class="text-xs font-mono uppercase tracking-wider text-purple-300 font-bold flex items-center gap-1.5 mb-2">
+                <i class="fa-solid fa-calculator"></i> La Matemática del RobustScaler
+              </span>
+
+              <div class="p-3 rounded-xl bg-slate-950/90 border border-purple-500/30 text-center mb-3">
+                <div class="text-[11px] font-mono text-slate-400 mb-1">Fórmula basada en Mediana e IQR:</div>
+                <div class="text-base sm:text-lg font-mono font-extrabold text-purple-300">
+                  X<sub class="text-xs">scaled</sub> = (X - Mediana) / (Q<sub class="text-xs">3</sub> - Q<sub class="text-xs">1</sub>)
+                </div>
+                <div class="text-[10px] font-mono text-emerald-400 mt-1">IQR = Rango Intercuartílico (50% central)</div>
+              </div>
+
+              <h3 class="text-xs font-bold text-white mb-1.5">¿Por qué supera a StandardScaler?</h3>
+              <ul class="space-y-1.5 text-xs text-slate-300">
+                <li class="flex items-start gap-1.5">
+                  <i class="fa-solid fa-check text-purple-400 mt-0.5"></i>
+                  <span><strong>Inmune a Outliers:</strong> No utiliza la media ($\mu$) ni la desviación ($\sigma$), las cuales se distorsionan con picos extremos.</span>
+                </li>
+                <li class="flex items-start gap-1.5">
+                  <i class="fa-solid fa-check text-purple-400 mt-0.5"></i>
+                  <span><strong>Preserva la Estructura:</strong> Mantiene la distancia relativa de los brotes sin comprimirlos en un rango forzado $[0, 1]$.</span>
+                </li>
+              </ul>
+            </div>
+
+            <div class="mt-3 pt-2 border-t border-slate-800 text-[11px] font-mono text-purple-300 flex items-center gap-1.5">
+              <i class="fa-solid fa-code"></i>
+              <span>sklearn.preprocessing.RobustScaler()</span>
+            </div>
+          </div>
+
+          <!-- Columna Derecha: Estrategia Híbrida Aplicada -->
+          <div class="lg:col-span-4 glass-card rounded-2xl p-4 flex flex-col justify-between border-l-4 border-l-emerald-400">
+            <div>
+              <span class="text-xs font-mono uppercase tracking-wider text-emerald-400 font-bold flex items-center gap-1.5 mb-2">
+                <i class="fa-solid fa-sliders"></i> Estrategia Híbrida en Código
+              </span>
+
+              <div class="space-y-2 text-xs">
+                <!-- RobustScaler -->
+                <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800">
+                  <div class="flex items-center justify-between text-purple-300 font-mono font-bold mb-1">
+                    <span>1. RobustScaler</span>
+                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-purple-500/20">Variables Asimétricas</span>
+                  </div>
+                  <p class="text-slate-300 text-[11px]">
+                    Aplicado a <strong>Lluvias_Acumuladas</strong> (Chocó &gt;500mm vs Guajira &lt;30mm) y <strong>Medicamentos_Vendidos</strong>.
+                  </p>
+                </div>
+
+                <!-- StandardScaler -->
+                <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800">
+                  <div class="flex items-center justify-between text-cyan-300 font-mono font-bold mb-1">
+                    <span>2. StandardScaler</span>
+                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-cyan-500/20">Distribución Normal</span>
+                  </div>
+                  <p class="text-slate-300 text-[11px]">
+                    Aplicado a <strong>Temperatura_Promedio</strong> y <strong>Humedad_Ambiente</strong> (distribución relativamente simétrica).
+                  </p>
+                </div>
+
+                <!-- Variable Objetivo -->
+                <div class="p-2.5 rounded-xl bg-slate-950 border border-emerald-500/30">
+                  <div class="flex items-center justify-between text-emerald-300 font-mono font-bold mb-1">
+                    <span>3. Variable Objetivo (y)</span>
+                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20">Sin Escalar</span>
+                  </div>
+                  <p class="text-slate-300 text-[11px]">
+                    <strong>Casos_Reportados</strong> NO se escala. Escalarla distorsionaría la conversión logística clínica (<code class="text-emerald-300">Casos × 15</code>).
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-3 pt-2 border-t border-slate-800 text-[11px] font-mono text-emerald-400">
+              Salida: <span class="text-slate-300">dataset_escalado_standard_robust.csv</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Banner Inferior de Resumen -->
+        <div class="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 flex flex-wrap items-center justify-between text-xs font-mono text-slate-300">
+          <span class="flex items-center gap-1.5 text-cyan-300">
+            <i class="fa-solid fa-check-double text-emerald-400"></i> Balance Logrado:
+          </span>
+          <span>Variables bioclimáticas y farmacéuticas en el mismo rango de peso para el Árbol de Decisión.</span>
+        </div>
+      </section>
+
+      <!-- =========================================================
+           DIAPOSITIVA 4: EVIDENCIA MULTIVARIADA CON IMÁGENES REALES
+           ========================================================= -->
+      <section class="slide-section flex-col justify-center min-h-[72vh]" data-slide="3">
+        <div class="mb-3">
+          <div class="flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-cyan-400 mb-0.5">
+            <span>Diapositiva 04</span>
+            <span>•</span>
+            <span>Evidencia Analítica Multivariada</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-white">
+            Correlaciones y Relación Casos vs. Disponibilidad de Medicamentos
+          </h2>
+          <p class="text-xs sm:text-sm text-slate-400">
+            Visualizaciones generadas en <code class="text-cyan-300 font-mono">img/</code> que fundamentan los umbrales de partición del Árbol de Decisión.
+          </p>
+        </div>
+
+        <!-- 3 Tarjetas con Gráficas Reales de /img -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5 mb-3">
+          <!-- Figura 4: Scatter -->
+          <div class="glass-card glass-card-hover rounded-2xl p-3.5 flex flex-col justify-between border-t-4 border-t-rose-500">
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="font-mono text-xs text-rose-300 font-bold truncate">fig4_scatter_casos...</span>
+                <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-rose-500/15 text-rose-300">Zona Crítica</span>
+              </div>
+
+              <div class="relative group cursor-pointer overflow-hidden rounded-xl border border-slate-800 bg-slate-950 flex items-center justify-center p-1.5 mb-2" onclick="openImageModal('img/fig4_scatter_casos_medicamentos.png', 'Figura 4: Dispersión Casos de Dengue vs. Medicamentos SISMED', 'Cruza los casos de dengue frente al volumen de medicamentos reportados en SISMED. Revela el cuadrante crítico: departamentos con alta incidencia epidémica y baja dotación farmacéutica.')">
+                <img src="img/fig4_scatter_casos_medicamentos.png" alt="Figura 4: Scatter Casos vs Medicamentos" class="h-36 sm:h-44 w-full object-contain group-hover:scale-105 transition duration-300" />
+                <div class="absolute inset-0 bg-slate-950/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-1.5 text-rose-300 font-mono text-xs">
+                  <i class="fa-solid fa-magnifying-glass-plus"></i> Ampliar
+                </div>
+              </div>
+
+              <h3 class="text-xs font-bold text-white mb-1">Casos vs. Medicamentos SISMED</h3>
+              <p class="text-[11px] text-slate-300 leading-relaxed">
+                Identifica el cuadrante de <strong>déficit agudo</strong>: cuando los casos crecen exponencialmente, los medicamentos no crecen a la misma velocidad.
+              </p>
+            </div>
+            <div class="mt-2 pt-1.5 border-t border-slate-800 text-[10px] font-mono text-slate-400">
+              Detona la regla: <span class="text-rose-400">Índice &ge; 0.85</span>
+            </div>
+          </div>
+
+          <!-- Figura 5: Heatmap -->
+          <div class="glass-card glass-card-hover rounded-2xl p-3.5 flex flex-col justify-between border-t-4 border-t-amber-400">
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="font-mono text-xs text-amber-300 font-bold truncate">fig5_heatmap_correlaciones...</span>
+                <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300">Matriz Pearson</span>
+              </div>
+
+              <div class="relative group cursor-pointer overflow-hidden rounded-xl border border-slate-800 bg-slate-950 flex items-center justify-center p-1.5 mb-2" onclick="openImageModal('img/fig5_heatmap_correlaciones.png', 'Figura 5: Mapa de Calor de Correlaciones de Pearson', 'Mide la fuerza de la asociación lineal entre las variables meteorológicas satelitales NASA (temperatura, precipitación, humedad), la incidencia de dengue y el índice de riesgo logístico.')">
+                <img src="img/fig5_heatmap_correlaciones.png" alt="Figura 5: Heatmap de Correlaciones" class="h-36 sm:h-44 w-full object-contain group-hover:scale-105 transition duration-300" />
+                <div class="absolute inset-0 bg-slate-950/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-1.5 text-amber-300 font-mono text-xs">
+                  <i class="fa-solid fa-magnifying-glass-plus"></i> Ampliar
+                </div>
+              </div>
+
+              <h3 class="text-xs font-bold text-white mb-1">Fuerza Bioclimática del Vector</h3>
+              <p class="text-[11px] text-slate-300 leading-relaxed">
+                La Humedad ($r=0.68$) y la Temperatura ($r=0.54$) tienen correlación directa con la tasa de reproducción larvaria y el riesgo final ($r=0.81$).
+              </p>
+            </div>
+            <div class="mt-2 pt-1.5 border-t border-slate-800 text-[10px] font-mono text-slate-400">
+              Poder predictivo clima: <span class="text-amber-400">~78.2%</span>
+            </div>
+          </div>
+
+          <!-- Figura 7: Tasa de Riesgo -->
+          <div class="glass-card glass-card-hover rounded-2xl p-3.5 flex flex-col justify-between border-t-4 border-t-emerald-400">
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="font-mono text-xs text-emerald-300 font-bold truncate">fig7_tasa_riesgo...</span>
+                <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-300">Target Logístico</span>
+              </div>
+
+              <div class="relative group cursor-pointer overflow-hidden rounded-xl border border-slate-800 bg-slate-950 flex items-center justify-center p-1.5 mb-2" onclick="openImageModal('img/fig7_tasa_riesgo_desabastecimiento.png', 'Figura 7: Tasa de Riesgo de Desabastecimiento por Territorio', 'Clasifica los departamentos según su índice de riesgo. Departamentos como Valle del Cauca, Tolima y Santander superan consistentemente el umbral crítico de demanda sobre stock.')">
+                <img src="img/fig7_tasa_riesgo_desabastecimiento.png" alt="Figura 7: Tasa de Riesgo" class="h-36 sm:h-44 w-full object-contain group-hover:scale-105 transition duration-300" />
+                <div class="absolute inset-0 bg-slate-950/60 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-1.5 text-emerald-300 font-mono text-xs">
+                  <i class="fa-solid fa-magnifying-glass-plus"></i> Ampliar
+                </div>
+              </div>
+
+              <h3 class="text-xs font-bold text-white mb-1">Jerarquización Departamental</h3>
+              <p class="text-[11px] text-slate-300 leading-relaxed">
+                Define el target supervisado del modelo, diferenciando territorios en estado normal vs departamentos bajo estrés de suministro.
+              </p>
+            </div>
+            <div class="mt-2 pt-1.5 border-t border-slate-800 text-[10px] font-mono text-slate-400">
+              Ver también: <button onclick="openImageModal('img/fig3_barras_departamentos_eventos.png', 'Figura 3: Concentración por Departamentos', 'Concentración histórica de eventos en Valle, Tolima, Santander y Meta.')" class="text-cyan-300 underline">Fig 3 (Top)</button> • <button onclick="openImageModal('img/fig6_matriz_dispersion.png', 'Figura 6: Matriz de Dispersión Pairplot', 'Separabilidad multivariable entre clases de riesgo.')" class="text-cyan-300 underline">Fig 6</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-between text-xs font-mono text-slate-300">
+          <span class="text-amber-400"><i class="fa-solid fa-circle-info mr-1"></i> Conclusión Analítica:</span>
+          <span>El desabastecimiento es una consecuencia directa del pico climático sobre la capacidad fija de stock hospitalario.</span>
+        </div>
+      </section>
+
+      <!-- =========================================================
+           DIAPOSITIVA 5: COMPONENTE 2 - ÁRBOL DE DECISIÓN FUNCIONAL
+           ========================================================= -->
+      <section class="slide-section flex-col justify-center min-h-[72vh]" data-slide="4">
+        <div class="mb-3">
+          <div class="flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-emerald-400 mb-0.5">
+            <span>Diapositiva 05</span>
+            <span>•</span>
+            <span>Componente Clave 2 • docs/README_arbol_decision_prediccion.md</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-white">
+            Árbol de Decisión Funcional
+          </h2>
+          <p class="text-xs sm:text-sm text-slate-400">
+            Estructura jerárquica con preguntas estrictas de Sí / No que integran predicción biofísica y logística hospitalaria.
+          </p>
+        </div>
+
+        <!-- Representación Visual del Árbol de Decisión de 4 Niveles -->
+        <div class="glass-card rounded-2xl p-4 border border-emerald-500/30 mb-3">
+          <!-- Nodo Raíz (Nivel 1) -->
+          <div class="flex flex-col items-center">
+            <div class="p-2.5 px-4 rounded-xl bg-slate-900 border-2 border-cyan-400 text-center max-w-md shadow-lg glow-cyan">
+              <span class="text-[10px] font-mono uppercase text-cyan-300 font-bold">Nivel 1 (Nodo Raíz - Filtro Epidemiológico)</span>
+              <div class="text-xs sm:text-sm font-bold text-white mt-0.5">¿El evento analizado es sensible al clima?</div>
+              <div class="text-[11px] text-slate-300 italic font-mono">(Variable: Nombre_evento == "DENGUE")</div>
+            </div>
+
+            <!-- Bifurcación Nivel 1 -->
+            <div class="w-full max-w-2xl grid grid-cols-2 gap-4 mt-2 mb-2 relative">
+              <!-- Rama NO -->
+              <div class="flex flex-col items-center">
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40 mb-1">NO</span>
+                <div class="p-2 rounded-lg bg-slate-950 border border-slate-800 text-[11px] text-slate-400 text-center w-full">
+                  No aplica modelo bioclimático.<br><span class="text-slate-500">Usar serie temporal simple.</span>
+                </div>
+              </div>
+
+              <!-- Rama SÍ -->
+              <div class="flex flex-col items-center">
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 mb-1">SÍ</span>
+                <!-- Nodo Nivel 2 -->
+                <div class="p-2.5 px-3 rounded-xl bg-slate-900 border-2 border-amber-400 text-center w-full shadow-md">
+                  <span class="text-[10px] font-mono uppercase text-amber-300 font-bold">Nivel 2 (Evaluación Biofísica)</span>
+                  <div class="text-xs font-bold text-white mt-0.5">¿Condiciones favorables para brote?</div>
+                  <div class="text-[10px] text-slate-300 font-mono">Temp &gt; 20°C y Humedad &gt; 70%</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Bifurcación Nivel 2 hacia Nivel 3 -->
+            <div class="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-4 mt-1">
+              <!-- Sub-rama Clima NO favorable -->
+              <div class="p-2.5 rounded-xl bg-slate-950/90 border border-slate-800 text-center flex flex-col justify-between">
+                <div>
+                  <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40">NO (Clima Frío/Seco)</span>
+                  <p class="text-xs text-slate-300 mt-1">Proyección de casos baja (Demanda reducida).</p>
+                </div>
+                <div class="mt-2 pt-2 border-t border-slate-800">
+                  <div class="text-[11px] font-mono text-cyan-300 mb-1">¿Demanda proyectada &ge; 50% inventario?</div>
+                  <div class="flex justify-center gap-2">
+                    <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-amber-500/20 text-amber-300">Sí: Alerta Media</span>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-500/20 text-emerald-300">No: Riesgo Bajo</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Sub-rama Clima SÍ favorable (Brotes Graves) -->
+              <div class="p-2.5 rounded-xl bg-slate-950/90 border-2 border-purple-500/40 text-center flex flex-col justify-between shadow-lg">
+                <div>
+                  <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">SÍ (Clima Epidémico Óptimo)</span>
+                  <p class="text-xs text-white font-semibold mt-1">
+                    Proyección de casos alta &rarr; <span class="font-mono text-purple-300">Demanda = Casos × 15</span>
+                  </p>
+                </div>
+                <!-- Nodo Nivel 3 -->
+                <div class="mt-2 pt-2 border-t border-slate-800">
+                  <span class="text-[10px] font-mono uppercase text-purple-300 font-bold">Nivel 3: ¿Demanda supera el 85% del Inventario?</span>
+                  <div class="grid grid-cols-2 gap-2 mt-1.5">
+                    <!-- Nivel 4 Hojas -->
+                    <div class="p-2 rounded bg-rose-500/20 border border-rose-500 text-rose-200 text-[11px] font-bold">
+                      🔴 SÍ: ALERTA ALTA<br><span class="text-[10px] font-normal text-rose-300 font-mono">Índice &ge; 0.85 (Quiebre Inminente)</span>
+                    </div>
+                    <div class="p-2 rounded bg-amber-500/20 border border-amber-500 text-amber-200 text-[11px] font-bold">
+                      🟡 NO: ¿Índice &ge; 0.50?<br><span class="text-[10px] font-normal text-amber-300 font-mono">Sí: Alerta Media | No: Normal</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3 Criterios de Evaluación Cumplidos -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+          <div class="glass-card p-2.5 rounded-xl flex items-center gap-2">
+            <i class="fa-solid fa-check text-emerald-400"></i>
+            <span><strong>Respuestas Binarias:</strong> Exclusivamente Sí / No en cada nodo.</span>
+          </div>
+          <div class="glass-card p-2.5 rounded-xl flex items-center gap-2">
+            <i class="fa-solid fa-check text-emerald-400"></i>
+            <span><strong>Traducción Logística:</strong> Convierte casos a unidades de insumos reales.</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- =========================================================
+           DIAPOSITIVA 6: MÚLTIPLES ÁRBOLES (RANDOM FOREST Y ENSAMBLE)
+           ========================================================= -->
+      <section class="slide-section flex-col justify-center min-h-[72vh]" data-slide="5">
+        <div class="mb-3">
+          <div class="flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-purple-400 mb-0.5">
+            <span>Diapositiva 06</span>
+            <span>•</span>
+            <span>¿Por qué es Muchísimo Mejor Crear Más Árboles?</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-white">
+            Más Árboles es Muchísimo Mejor: Random Forest & Sistema Multiárbol
+          </h2>
+          <p class="text-xs sm:text-sm text-slate-400">
+            Justificación técnica del paso de un árbol individual inestable a un ensamble y sistema multiárbol de 4 niveles.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-3">
+          <!-- Comparativa Teórica: Un Árbol vs. Random Forest -->
+          <div class="lg:col-span-5 glass-card rounded-2xl p-4 flex flex-col justify-between border-l-4 border-l-purple-500">
+            <div>
+              <span class="text-xs font-mono uppercase tracking-wider text-purple-400 font-bold flex items-center gap-1.5 mb-2">
+                <i class="fa-solid fa-tree"></i> Árbol Único vs. 100 Árboles (Ensamble)
+              </span>
+
+              <div class="space-y-2.5 text-xs">
+                <div class="p-2.5 rounded-xl bg-slate-950 border border-rose-500/30">
+                  <div class="text-rose-400 font-bold flex items-center gap-1.5 mb-0.5">
+                    <i class="fa-solid fa-xmark"></i> Debilidad de 1 Solo Árbol:
+                  </div>
+                  <p class="text-slate-300 text-[11px] leading-relaxed">
+                    <strong>Alta varianza y sobreajuste:</strong> Un solo árbol memoriza los picos de dengue de un departamento y ante una pequeña variación de lluvia o temperatura en 2027 colapsa o bifurca erróneamente.
+                  </p>
+                </div>
+
+                <div class="p-2.5 rounded-xl bg-slate-950 border border-emerald-500/30">
+                  <div class="text-emerald-400 font-bold flex items-center gap-1.5 mb-0.5">
+                    <i class="fa-solid fa-check"></i> La Fuerza de Múltiples Árboles (100 Trees):
+                  </div>
+                  <p class="text-slate-300 text-[11px] leading-relaxed">
+                    <strong>Bagging (Bootstrap Aggregating):</strong> Entrena 100 árboles con subconjuntos aleatorios de datos y variables. Promedia las predicciones, reduciendo drásticamente el error (MAE) y estabilizando la varianza.
+                  </p>
+                </div>
+              </div>
+
+              <!-- Feature Importances del Ensamble -->
+              <div class="mt-3 p-2.5 rounded-xl bg-slate-900 border border-slate-800">
+                <span class="text-[10px] font-mono uppercase text-cyan-300 font-bold block mb-1">
+                  Importancias Relativas en el Código (feature_importances_):
+                </span>
+                <div class="grid grid-cols-3 gap-1.5 text-center font-mono text-[11px]">
+                  <div class="p-1 rounded bg-slate-950 border border-slate-800">
+                    <div class="text-cyan-400 font-bold">27.5%</div>
+                    <div class="text-[9px] text-slate-400">Humedad</div>
+                  </div>
+                  <div class="p-1 rounded bg-slate-950 border border-slate-800">
+                    <div class="text-amber-400 font-bold">26.4%</div>
+                    <div class="text-[9px] text-slate-400">Temperatura</div>
+                  </div>
+                  <div class="p-1 rounded bg-slate-950 border border-slate-800">
+                    <div class="text-emerald-400 font-bold">24.3%</div>
+                    <div class="text-[9px] text-slate-400">Lluvias</div>
+                  </div>
+                </div>
+                <div class="text-[10px] font-mono text-center text-slate-400 mt-1">
+                  Bloque Climático Acumula el <strong class="text-white">78.2%</strong> del poder predictivo.
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-2 pt-2 border-t border-slate-800 text-[11px] font-mono text-purple-300">
+              Script: <code class="text-white">src/05_modelado/prediccion_futura_2027.py</code>
+            </div>
+          </div>
+
+          <!-- Columna Derecha: Sistema de 3 Árboles Especializados (<= 4 Niveles) -->
+          <div class="lg:col-span-7 glass-card rounded-2xl p-4 flex flex-col justify-between border-t-4 border-t-cyan-400">
+            <div>
+              <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                <span class="text-xs font-mono uppercase tracking-wider text-cyan-300 font-bold flex items-center gap-1.5">
+                  <i class="fa-solid fa-sitemap"></i> Sistema Multiarbol Funcional (3 Árboles Especializados)
+                </span>
+                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/15 text-cyan-300">Cada árbol &le; 4 niveles</span>
+              </div>
+              <p class="text-xs text-slate-300 mb-2.5">
+                Para responder a la necesidad de crear más árboles sin exceder 4 niveles, diseñamos 3 árboles interconectados:
+              </p>
+
+              <!-- Tabs para alternar entre los 3 árboles complementarios -->
+              <div class="flex items-center gap-1.5 mb-2.5">
+                <button onclick="selectTreeTab(0)" id="treeTabBtn0" class="tree-tab-btn flex-1 py-1.5 px-2 rounded-lg font-mono text-xs font-bold bg-cyan-500 text-slate-950 transition">
+                  1. Riesgo General
+                </button>
+                <button onclick="selectTreeTab(1)" id="treeTabBtn1" class="tree-tab-btn flex-1 py-1.5 px-2 rounded-lg font-mono text-xs font-semibold bg-slate-900 text-slate-300 hover:bg-slate-800 transition">
+                  2. Logística & Traslado
+                </button>
+                <button onclick="selectTreeTab(2)" id="treeTabBtn2" class="tree-tab-btn flex-1 py-1.5 px-2 rounded-lg font-mono text-xs font-semibold bg-slate-900 text-slate-300 hover:bg-slate-800 transition">
+                  3. Alerta Bioclimática
+                </button>
+              </div>
+
+              <!-- Contenedor dinámico del árbol seleccionado -->
+              <div id="treeContainer" class="p-3 rounded-xl bg-slate-950 border border-slate-800 min-h-[170px] flex flex-col justify-between">
+                <!-- Inyectado por JS -->
+              </div>
+            </div>
+
+            <div class="mt-2.5 pt-2 border-t border-slate-800 flex items-center justify-between text-[11px] font-mono text-slate-400">
+              <span class="text-emerald-400"><i class="fa-solid fa-network-wired mr-1"></i> Cobertura 360°:</span>
+              <span>Alerta Temprana &rarr; Estimación de Demanda &rarr; Acción de Suministro</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-between text-xs font-mono text-slate-300">
+          <span class="text-emerald-300 font-bold"><i class="fa-solid fa-thumbs-up mr-1"></i> Conclusión para el Docente:</span>
+          <span>Tener más árboles permite modularizar el problema: un modelo no lo hace todo; cada árbol toma decisiones binarias precisas.</span>
+        </div>
+      </section>
+
+      <!-- =========================================================
+           DIAPOSITIVA 7: COMPONENTE 3 - DECISIONES TOMADAS
+           ========================================================= -->
+      <section class="slide-section flex-col justify-center min-h-[72vh]" data-slide="6">
+        <div class="mb-3">
+          <div class="flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-amber-400 mb-0.5">
+            <span>Diapositiva 07</span>
+            <span>•</span>
+            <span>Componente Clave 3 • Evaluación Docente</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-white">
+            Matriz de Decisiones Técnicas y Metodológicas Tomadas
+          </h2>
+          <p class="text-xs sm:text-sm text-slate-400">
+            Resumen estructurado de las decisiones analíticas, algoritmos y reglas de negocio justificadas ante la rúbrica.
+          </p>
+        </div>
+
+        <!-- Matriz de Decisiones -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 mb-3">
+          <!-- Decisión 1 -->
+          <div class="glass-card glass-card-hover rounded-xl p-3.5 border-l-4 border-l-cyan-400 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-[10px] font-mono uppercase text-cyan-300 font-bold">Decisión 01 • Datos</span>
+                <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-900 text-slate-400">Fase 1-2</span>
+              </div>
+              <h3 class="text-sm font-bold text-white mb-1">Cruce Multifuente Mensual-Departamental</h3>
+              <p class="text-xs text-slate-300 leading-relaxed">
+                Alinear las transacciones comerciales de <strong>SISMED</strong> con la vigilancia epidemiológica de <strong>SIVIGILA</strong> y las coordenadas climáticas satelitales de la <strong>NASA</strong> mediante agregación mensual homogénea.
+              </p>
+            </div>
+            <div class="mt-2 pt-1.5 border-t border-slate-800 text-[10px] font-mono text-emerald-400">
+              Impacto: Elimina sesgos de escala temporal
+            </div>
+          </div>
+
+          <!-- Decisión 2 -->
+          <div class="glass-card glass-card-hover rounded-xl p-3.5 border-l-4 border-l-rose-500 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-[10px] font-mono uppercase text-rose-300 font-bold">Decisión 02 • Outliers</span>
+                <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-900 text-slate-400">Fase 3</span>
+              </div>
+              <h3 class="text-sm font-bold text-white mb-1">Preservación de Valores Atípicos</h3>
+              <p class="text-xs text-slate-300 leading-relaxed">
+                <strong>No eliminar los outliers estadísticos</strong> de la variable de casos ni de lluvias, ya que representan emergencias reales de brotes epidémicos. Borrarlos impediría al modelo predecir la saturación de inventarios.
+              </p>
+            </div>
+            <div class="mt-2 pt-1.5 border-t border-slate-800 text-[10px] font-mono text-emerald-400">
+              Impacto: Detección veraz de brotes severos
+            </div>
+          </div>
+
+          <!-- Decisión 3 -->
+          <div class="glass-card glass-card-hover rounded-xl p-3.5 border-l-4 border-l-purple-400 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-[10px] font-mono uppercase text-purple-300 font-bold">Decisión 03 • Escalamiento</span>
+                <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-900 text-slate-400">Fase 3</span>
+              </div>
+              <h3 class="text-sm font-bold text-white mb-1">Estrategia Híbrida de Normalización</h3>
+              <p class="text-xs text-slate-300 leading-relaxed">
+                Aplicar <strong>RobustScaler</strong> (IQR/mediana) a variables asimétricas (Lluvias y Medicamentos) y <strong>StandardScaler</strong> a variables gaussianas (Temperatura y Humedad). Mantener Casos sin escalar para respetar la regla clínica.
+              </p>
+            </div>
+            <div class="mt-2 pt-1.5 border-t border-slate-800 text-[10px] font-mono text-emerald-400">
+              Impacto: Ninguna variable domina injustamente
+            </div>
+          </div>
+
+          <!-- Decisión 4 -->
+          <div class="glass-card glass-card-hover rounded-xl p-3.5 border-l-4 border-l-emerald-400 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-[10px] font-mono uppercase text-emerald-300 font-bold">Decisión 04 • Modelado</span>
+                <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-900 text-slate-400">Fase 4</span>
+              </div>
+              <h3 class="text-sm font-bold text-white mb-1">Arquitectura Híbrida: ML + Árbol Lógico</h3>
+              <p class="text-xs text-slate-300 leading-relaxed">
+                Utilizar <strong>Random Forest Regressor</strong> para predecir numéricamente los casos futuros (2027) según perfiles bioclimáticos departamentales y acoplarlo a un <strong>Árbol de Decisión Binario de &le; 4 niveles</strong> para la decisión logística.
+              </p>
+            </div>
+            <div class="mt-2 pt-1.5 border-t border-slate-800 text-[10px] font-mono text-emerald-400">
+              Impacto: Precisión continua + Explicabilidad binaria
+            </div>
+          </div>
+
+          <!-- Decisión 5 -->
+          <div class="glass-card glass-card-hover rounded-xl p-3.5 border-l-4 border-l-amber-400 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-[10px] font-mono uppercase text-amber-300 font-bold">Decisión 05 • Regla Negocio</span>
+                <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-900 text-slate-400">Logística</span>
+              </div>
+              <h3 class="text-sm font-bold text-white mb-1">Factor de Conversión: Demanda = Casos × 15</h3>
+              <p class="text-xs text-slate-300 leading-relaxed">
+                Establecer una tasa de 15 unidades terapéuticas promedio por paciente de dengue (sales de rehidratación oral, paracetamol, analgesia). Umbral de riesgo crítico fijado en el <strong>85%</strong> del stock departamental.
+              </p>
+            </div>
+            <div class="mt-2 pt-1.5 border-t border-slate-800 text-[10px] font-mono text-emerald-400">
+              Impacto: Conexión clínica con SISMED
+            </div>
+          </div>
+
+          <!-- Decisión 6 -->
+          <div class="glass-card glass-card-hover rounded-xl p-3.5 border-l-4 border-l-sky-400 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-[10px] font-mono uppercase text-sky-300 font-bold">Decisión 06 • Evaluación</span>
+                <span class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-900 text-slate-400">Fase 5</span>
+              </div>
+              <h3 class="text-sm font-bold text-white mb-1">Priorización del Recall ante Falsos Negativos</h3>
+              <p class="text-xs text-slate-300 leading-relaxed">
+                En salud pública, el costo de un <strong>Falso Negativo</strong> (un departamento que se queda sin medicamentos sin previo aviso) es inaceptable. Por ende, la regla de alerta se optimiza para alta sensibilidad.
+              </p>
+            </div>
+            <div class="mt-2 pt-1.5 border-t border-slate-800 text-[10px] font-mono text-emerald-400">
+              Impacto: Cero desabastecimientos no alertados
+            </div>
+          </div>
+        </div>
+
+        <div class="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 flex items-center justify-between text-xs font-mono text-slate-300">
+          <span class="text-cyan-400 font-bold"><i class="fa-solid fa-award mr-1"></i> Cumplimiento Académico:</span>
+          <span>Cada decisión técnica responde directamente a los desafíos analíticos del dataset y a la rúbrica del docente.</span>
+        </div>
+      </section>
+
+      <!-- =========================================================
+           DIAPOSITIVA 8: PROYECCIÓN 2027, DESPLIEGUE Y CONCLUSIONES
+           ========================================================= -->
+      <section class="slide-section flex-col justify-center min-h-[72vh]" data-slide="7">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
+          <!-- Columna Izquierda: Síntesis de Resultados 2027 -->
+          <div class="lg:col-span-7 space-y-3.5">
+            <div class="flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-emerald-400">
+              <span>Diapositiva 08</span>
+              <span>•</span>
+              <span>Despliegue & Cierre de Avance</span>
+            </div>
+
+            <h2 class="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white leading-tight">
+              Proyección 2027 y Balance General del Avance
+            </h2>
+
+            <div class="space-y-2.5">
+              <div class="glass-card p-3 rounded-xl border-l-4 border-l-cyan-400 flex items-start gap-3">
+                <div class="w-8 h-8 rounded-lg bg-cyan-500/20 text-cyan-300 flex items-center justify-center shrink-0 mt-0.5 text-xs">
+                  <i class="fa-solid fa-bullseye"></i>
+                </div>
+                <div>
+                  <h3 class="text-xs sm:text-sm font-bold text-white">1. Proyección 2027 Departamentalizada Operativa</h3>
+                  <p class="text-xs text-slate-300 mt-0.5">
+                    El script <code class="text-cyan-300 font-mono">src/05_modelado/prediccion_futura_2027.py</code> simula los 12 meses de 2027 con estacionalidad bimodal (lluvia/sequía). Identifica riesgo crítico en Valle del Cauca, Tolima, Santander y Huila.
+                  </p>
+                </div>
+              </div>
+
+              <div class="glass-card p-3 rounded-xl border-l-4 border-l-purple-400 flex items-start gap-3">
+                <div class="w-8 h-8 rounded-lg bg-purple-500/20 text-purple-300 flex items-center justify-center shrink-0 mt-0.5 text-xs">
+                  <i class="fa-solid fa-map-location-dot"></i>
+                </div>
+                <div>
+                  <h3 class="text-xs sm:text-sm font-bold text-white">2. Visualización Geoespacial sobre OpenStreetMap</h3>
+                  <p class="text-xs text-slate-300 mt-0.5">
+                    En <code class="text-purple-300 font-mono">src/06_visualizacion/mapa_riesgo_interactivo.py</code> se renderiza la cartografía interactiva departamental con marcadores de semáforo (Verde, Amarillo, Rojo).
+                  </p>
+                </div>
+              </div>
+
+              <div class="glass-card p-3 rounded-xl border-l-4 border-l-emerald-400 flex items-start gap-3">
+                <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-300 flex items-center justify-center shrink-0 mt-0.5 text-xs">
+                  <i class="fa-solid fa-code-compare"></i>
+                </div>
+                <div>
+                  <h3 class="text-xs sm:text-sm font-bold text-white">3. Pipeline 100% Automatizado y Reproducible</h3>
+                  <p class="text-xs text-slate-300 mt-0.5">
+                    Orquestación integral desde <code class="text-emerald-300 font-mono">main.py</code>: ingesta &rarr; preparación &rarr; EDA &rarr; transformación (RobustScaler) &rarr; modelado supervisado &rarr; visualización.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Accesos rápidos a archivos para el docente -->
+            <div class="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 flex flex-wrap items-center gap-2 text-xs font-mono">
+              <span class="text-slate-400">Ver scripts clave:</span>
+              <span class="px-2 py-0.5 rounded bg-slate-950 border border-slate-700 text-cyan-300">escalamiento.py</span>
+              <span class="px-2 py-0.5 rounded bg-slate-950 border border-slate-700 text-purple-300">prediccion_futura_2027.py</span>
+              <span class="px-2 py-0.5 rounded bg-slate-950 border border-slate-700 text-emerald-300">README_arbol_decision_prediccion.md</span>
+            </div>
+          </div>
+
+          <!-- Columna Derecha: Tarjeta de Cierre y Preguntas -->
+          <div class="lg:col-span-5">
+            <div class="glass-card rounded-2xl p-5 border border-amber-400/40 text-center relative overflow-hidden">
+              <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-cyan-500 to-emerald-400 flex items-center justify-center text-slate-950 text-2xl mx-auto mb-3 shadow-lg glow-cyan">
+                <i class="fa-solid fa-comments"></i>
+              </div>
+
+              <h3 class="text-xl font-extrabold text-white mb-1">¡Muchas Gracias!</h3>
+              <p class="text-xs font-mono text-cyan-400 mb-4">Espacio para Preguntas y Retroalimentación</p>
+
+              <div class="p-3.5 rounded-xl bg-slate-950/80 border border-slate-800 text-left space-y-2 text-xs text-slate-300 mb-4">
+                <div class="flex items-center gap-2 text-emerald-400 font-bold font-mono">
+                  <i class="fa-solid fa-check-circle"></i>
+                  <span>Los 3 Componentes Sustentados:</span>
+                </div>
+                <div class="flex items-center gap-2 pl-4">
+                  <i class="fa-solid fa-arrow-right text-xs text-cyan-400"></i>
+                  <span>Escalamiento RobustScaler justificado ante outliers.</span>
+                </div>
+                <div class="flex items-center gap-2 pl-4">
+                  <i class="fa-solid fa-arrow-right text-xs text-cyan-400"></i>
+                  <span>Árboles binarios (&le; 4 niveles) y Random Forest.</span>
+                </div>
+                <div class="flex items-center gap-2 pl-4">
+                  <i class="fa-solid fa-arrow-right text-xs text-cyan-400"></i>
+                  <span>Matriz de decisiones técnicas y de negocio.</span>
+                </div>
+              </div>
+
+              <!-- Botones de Navegación Rápida -->
+              <div class="grid grid-cols-2 gap-2 text-xs font-mono">
+                <button onclick="goToSlide(1)" class="p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-cyan-300 transition flex items-center justify-center gap-1.5">
+                  <i class="fa-regular fa-image"></i> Ver Gráficas /img
+                </button>
+                <button onclick="goToSlide(2)" class="p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-purple-300 transition flex items-center justify-center gap-1.5">
+                  <i class="fa-solid fa-sliders"></i> Ver Escalamiento
+                </button>
+                <button onclick="goToSlide(4)" class="p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-emerald-300 transition flex items-center justify-center gap-1.5">
+                  <i class="fa-solid fa-sitemap"></i> Ver Árbol Binario
+                </button>
+                <button onclick="goToSlide(6)" class="p-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-amber-300 transition flex items-center justify-center gap-1.5">
+                  <i class="fa-solid fa-list-check"></i> Ver Decisiones
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- MODAL PARA AMPLIAR FIGURAS DE /img EN ALTA RESOLUCIÓN -->
+  <div id="imageModal" class="fixed inset-0 z-50 hidden bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="glass-card max-w-4xl w-full rounded-2xl p-5 border border-cyan-500/40 shadow-2xl flex flex-col max-h-[92vh]">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800 mb-3">
+        <div>
+          <span id="modalPath" class="text-xs font-mono text-cyan-400">img/...</span>
+          <h3 id="modalTitle" class="text-base sm:text-lg font-bold text-white">Título de la Figura</h3>
+        </div>
+        <button onclick="closeImageModal()" class="w-8 h-8 rounded-lg bg-slate-900 hover:bg-rose-500/20 text-slate-400 hover:text-rose-300 flex items-center justify-center text-sm transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="flex-1 overflow-hidden flex items-center justify-center bg-slate-950 rounded-xl p-2 border border-slate-800">
+        <img id="modalImg" src="" alt="Vista ampliada" class="max-h-[60vh] w-auto object-contain rounded-lg" />
+      </div>
+
+      <div class="mt-3 p-3 rounded-xl bg-slate-900/90 border border-slate-800">
+        <div class="text-[11px] font-mono uppercase text-amber-400 font-bold mb-0.5 flex items-center gap-1.5">
+          <i class="fa-solid fa-lightbulb"></i> Interpretación Técnica:
+        </div>
+        <p id="modalDesc" class="text-xs sm:text-sm text-slate-300 leading-relaxed"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- BARRA INFERIOR DE CONTROLES DE NAVEGACIÓN -->
+  <footer class="relative z-30 border-t border-slate-800/80 bg-slate-950/85 backdrop-blur-md px-4 sm:px-6 py-2.5">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-4">
+      <!-- Info de atajos -->
+      <div class="hidden md:flex items-center gap-3 text-xs font-mono text-slate-400">
+        <span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-300">← / →</span>
+        <span>Navegar</span>
+        <span class="text-slate-700">|</span>
+        <span class="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-300">1-8</span>
+        <span>Salto a Diapositiva</span>
+        <span class="text-slate-700">|</span>
+        <span class="text-cyan-400 font-semibold">Exactamente 8 Diapositivas</span>
+      </div>
+
+      <!-- Indicador Central -->
+      <div class="flex items-center gap-2 font-mono text-xs sm:text-sm">
+        <span class="text-slate-400">Diapositiva</span>
+        <span id="slideCounter" class="px-2.5 py-0.5 rounded-md bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 font-bold">1 / 8</span>
+        <span id="slideShortTitle" class="hidden sm:inline text-slate-400 text-xs truncate max-w-[260px]">• Portada y Ecosistema</span>
+      </div>
+
+      <!-- Botones Anterior / Siguiente -->
+      <div class="flex items-center gap-2">
+        <button onclick="prevSlide()" id="prevBtn" class="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 disabled:opacity-40 disabled:pointer-events-none border border-slate-700 text-xs sm:text-sm font-medium text-slate-200 flex items-center gap-2 transition">
+          <i class="fa-solid fa-arrow-left text-cyan-400"></i>
+          <span>Anterior</span>
+        </button>
+
+        <button onclick="nextSlide()" id="nextBtn" class="px-4 py-1.5 rounded-xl bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-slate-950 font-bold text-xs sm:text-sm flex items-center gap-2 shadow-lg transition">
+          <span>Siguiente</span>
+          <i class="fa-solid fa-arrow-right"></i>
+        </button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- LÓGICA INTERACTIVA DE LA PRESENTACIÓN -->
+  <script>
+    // Estado global de la presentación
+    let currentSlide = 0;
+    const totalSlides = 8;
+
+    // Metadatos de títulos para la barra de estado
+    const slideTitles = [
+      "Portada y Ecosistema",
+      "EDA y Diagnóstico de Outliers (/img)",
+      "Escalamiento Híbrido & RobustScaler",
+      "Evidencia Multivariada (/img)",
+      "Árbol de Decisión Binario (<= 4 Niveles)",
+      "Múltiples Árboles (Random Forest & Ensamble)",
+      "Decisiones Metodológicas Tomadas",
+      "Proyección 2027 y Conclusiones"
+    ];
+
+    // Datos de los 3 árboles complementarios para la Diapositiva 6
+    const specializedTrees = [
+      {
+        id: "tree1",
+        title: "Árbol 1: Riesgo General de Desabastecimiento (Baseline README)",
+        desc: "Clasifica el nivel de estrés del inventario farmacéutico departamental cruzando clima e incidencia.",
+        html: `
+          <div class="space-y-2 text-xs">
+            <div class="p-2 rounded-lg bg-slate-900 border border-cyan-500/40 flex items-center justify-between">
+              <span class="font-bold text-white font-mono">1. ¿Evento sensible al clima?</span>
+              <span class="text-cyan-300 font-mono">Sí (Dengue) &rarr; Nivel 2 | No &rarr; Serie simple</span>
+            </div>
+            <div class="p-2 rounded-lg bg-slate-900 border border-amber-500/40 flex items-center justify-between">
+              <span class="font-bold text-white font-mono">2. ¿Temp &gt; 20°C y Humedad &gt; 70%?</span>
+              <span class="text-amber-300 font-mono">Sí &rarr; Demanda = Casos × 15 | No &rarr; Demanda baja</span>
+            </div>
+            <div class="p-2 rounded-lg bg-slate-900 border border-purple-500/40 flex items-center justify-between">
+              <span class="font-bold text-white font-mono">3. ¿Demanda supera el 85% del stock?</span>
+              <span class="text-purple-300 font-mono">Sí &rarr; ALERTA ALTA | No &rarr; Evaluar umbral 50%</span>
+            </div>
+            <div class="p-2 rounded-lg bg-slate-900 border border-emerald-500/40 flex items-center justify-between">
+              <span class="font-bold text-white font-mono">4. Salida / Hoja de Decisión:</span>
+              <span class="text-emerald-300 font-mono font-bold">🔴 Alto (&ge;0.85) | 🟡 Medio (0.50-0.85) | 🟢 Normal (&lt;0.50)</span>
+            </div>
+          </div>
+        `
+      },
+      {
+        id: "tree2",
+        title: "Árbol 2: Priorización Logística y Acción Operativa (Cadena de Suministro)",
+        desc: "Determina la intervención de contingencia cuando un departamento entra en riesgo medio o alto.",
+        html: `
+          <div class="space-y-2 text-xs">
+            <div class="p-2 rounded-lg bg-slate-900 border border-cyan-500/40 flex items-center justify-between">
+              <span class="font-bold text-white font-mono">1. ¿Depto en Alerta Alta o Media?</span>
+              <span class="text-cyan-300 font-mono">Sí &rarr; Nivel 2 | No &rarr; Monitoreo rutinario</span>
+            </div>
+            <div class="p-2 rounded-lg bg-slate-900 border border-amber-500/40 flex items-center justify-between">
+              <span class="font-bold text-white font-mono">2. ¿Reserva departamental &lt; 15 días?</span>
+              <span class="text-amber-300 font-mono">Sí &rarr; Activar Nivel 3 | No &rarr; Reposición ordinaria</span>
+            </div>
+            <div class="p-2 rounded-lg bg-slate-900 border border-purple-500/40 flex items-center justify-between">
+              <span class="font-bold text-white font-mono">3. ¿Tiempo entrega proveedor &lt; 7 días?</span>
+              <span class="text-purple-300 font-mono">Sí &rarr; Compra Directa | No &rarr; Traslado Emergencia</span>
+            </div>
+            <div class="p-2 rounded-lg bg-slate-900 border border-emerald-500/40 flex items-center justify-between">
+              <span class="font-bold text-white font-mono">4. Salida / Hoja Logística:</span>
+              <span class="text-emerald-300 font-mono font-bold">🚨 Traslado Interdepartamental Inmediato vs Compra SISMED</span>
+            </div>
+          </div>
+        `
+      },
+      {
+        id: "tree3",
+        title: "Árbol 3: Alerta Temprana Bioclimática (Vigilancia Satelital NASA)",
+        desc: "Detecta con semanas de anticipación si las condiciones atmosféricas dispararán la curva vectorial.",
+        html: `
+          <div class="space-y-2 text-xs">
+            <div class="p-2 rounded-lg bg-slate-900 border border-cyan-500/40 flex items-center justify-between">
+              <span class="font-bold text-white font-mono">1. ¿Lluvias Acumuladas &gt; 150 mm?</span>
+              <span class="text-cyan-300 font-mono">Sí &rarr; Criaderos activos | No &rarr; Vigilancia larvaria</span>
+            </div>
+            <div class="p-2 rounded-lg bg-slate-900 border border-amber-500/40 flex items-center justify-between">
+              <span class="font-bold text-white font-mono">2. ¿Temp sostenida entre 20°C y 30°C?</span>
+              <span class="text-amber-300 font-mono">Sí &rarr; Aceleración replicación viral | No &rarr; Ciclo lento</span>
+            </div>
+            <div class="p-2 rounded-lg bg-slate-900 border border-purple-500/40 flex items-center justify-between">
+              <span class="font-bold text-white font-mono">3. ¿Humedad relativa promedio &gt; 75%?</span>
+              <span class="text-purple-300 font-mono">Sí &rarr; Supervivencia mosquito adulto hembra prolongada</span>
+            </div>
+            <div class="p-2 rounded-lg bg-slate-900 border border-emerald-500/40 flex items-center justify-between">
+              <span class="font-bold text-white font-mono">4. Salida / Alerta Epidemiológica:</span>
+              <span class="text-emerald-300 font-mono font-bold">⚡ Alerta Epidémica Explosiva: Brigadas & Fumigación</span>
+            </div>
+          </div>
+        `
+      }
+    ];
+
+    // Cambiar de Diapositiva
+    function goToSlide(index) {
+      if (index < 0 || index >= totalSlides) return;
+      currentSlide = index;
+
+      // Actualizar diapositiva activa
+      const sections = document.querySelectorAll('.slide-section');
+      sections.forEach((sec, idx) => {
+        if (idx === currentSlide) {
+          sec.classList.add('active');
+        } else {
+          sec.classList.remove('active');
+        }
+      });
+
+      // Actualizar barra de progreso superior
+      const progress = ((currentSlide + 1) / totalSlides) * 100;
+      document.getElementById('progressBar').style.width = `${progress}%`;
+
+      // Actualizar contador y título
+      document.getElementById('slideCounter').textContent = `${currentSlide + 1} / ${totalSlides}`;
+      document.getElementById('slideShortTitle').textContent = `• ${slideTitles[currentSlide]}`;
+
+      // Botón anterior
+      document.getElementById('prevBtn').disabled = currentSlide === 0;
+
+      // Botón siguiente / reiniciar
+      const nextBtn = document.getElementById('nextBtn');
+      if (currentSlide === totalSlides - 1) {
+        nextBtn.innerHTML = `<span>Reiniciar</span><i class="fa-solid fa-rotate-left"></i>`;
+      } else {
+        nextBtn.innerHTML = `<span>Siguiente</span><i class="fa-solid fa-arrow-right"></i>`;
+      }
+
+      // Actualizar dots superiores
+      const dots = document.querySelectorAll('.slide-dot');
+      dots.forEach((dot, idx) => {
+        if (idx === currentSlide) {
+          dot.className = "slide-dot w-7 h-7 rounded-lg font-mono text-xs font-bold bg-cyan-500 text-slate-950 shadow-md glow-cyan transition-all";
+        } else {
+          dot.className = "slide-dot w-7 h-7 rounded-lg font-mono text-xs font-semibold bg-slate-900 text-slate-400 hover:bg-slate-800 hover:text-white border border-slate-800 transition-all";
+        }
+      });
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides - 1) {
+        goToSlide(currentSlide + 1);
+      } else {
+        goToSlide(0);
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlide > 0) {
+        goToSlide(currentSlide - 1);
+      }
+    }
+
+    // Modal de imágenes para visualización ampliada
+    function openImageModal(imgPath, title, desc) {
+      document.getElementById('modalImg').src = imgPath;
+      document.getElementById('modalPath').textContent = imgPath;
+      document.getElementById('modalTitle').textContent = title;
+      document.getElementById('modalDesc').textContent = desc;
+      document.getElementById('imageModal').classList.remove('hidden');
+    }
+
+    function closeImageModal() {
+      document.getElementById('imageModal').classList.add('hidden');
+    }
+
+    // Cerrar modal con tecla Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeImageModal();
+      }
+    });
+
+    // Pestañas de los 3 árboles especializados en Diapositiva 6
+    function selectTreeTab(index) {
+      const tree = specializedTrees[index];
+      for (let i = 0; i < 3; i++) {
+        const btn = document.getElementById(`treeTabBtn${i}`);
+        if (i === index) {
+          btn.className = "tree-tab-btn flex-1 py-1.5 px-2 rounded-lg font-mono text-xs font-bold bg-cyan-500 text-slate-950 transition";
+        } else {
+          btn.className = "tree-tab-btn flex-1 py-1.5 px-2 rounded-lg font-mono text-xs font-semibold bg-slate-900 text-slate-300 hover:bg-slate-800 transition";
+        }
+      }
+
+      document.getElementById('treeContainer').innerHTML = `
+        <div>
+          <div class="flex items-center justify-between mb-2 pb-1.5 border-b border-slate-800">
+            <span class="text-xs font-bold text-white font-mono">${tree.title}</span>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">Respuestas Binarias Sí/No</span>
+          </div>
+          <p class="text-[11px] text-slate-300 mb-2 italic">${tree.desc}</p>
+          ${tree.html}
+        </div>
+      `;
+    }
+
+    // Cronómetro de sustentación
+    let timerSeconds = 0;
+    let timerInterval = null;
+    function toggleTimer() {
+      const btn = document.getElementById('timerBtn');
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+        btn.classList.remove('border-emerald-400');
+      } else {
+        btn.classList.add('border-emerald-400');
+        timerInterval = setInterval(() => {
+          timerSeconds++;
+          const mins = String(Math.floor(timerSeconds / 60)).padStart(2, '0');
+          const secs = String(timerSeconds % 60).padStart(2, '0');
+          document.getElementById('timerDisplay').textContent = `${mins}:${secs}`;
+        }, 1000);
+      }
+    }
+
+    // Pantalla completa
+    function toggleFullScreen() {
+      const icon = document.getElementById('fullscreenIcon');
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+        icon.classList.replace('fa-expand', 'fa-compress');
+      } else {
+        document.exitFullscreen().catch(() => {});
+        icon.classList.replace('fa-compress', 'fa-expand');
+      }
+    }
+
+    // Controles de teclado
+    document.addEventListener('keydown', (e) => {
+      // Ignorar si el modal está abierto y se presiona otra cosa que no sea Escape
+      if (!document.getElementById('imageModal').classList.contains('hidden')) {
+        return;
+      }
+      if (e.key === 'ArrowRight' || e.key === ' ') {
+        e.preventDefault();
+        nextSlide();
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        prevSlide();
+      } else if (e.key >= '1' && e.key <= '8') {
+        goToSlide(parseInt(e.key, 10) - 1);
+      }
+    });
+
+    // Inicializar al cargar
+    window.onload = function () {
+      goToSlide(0);
+      selectTreeTab(0);
+    };
+  </script>
+</body>
+</html>
