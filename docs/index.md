@@ -29,3 +29,10 @@ Esta carpeta consolida la documentación técnica, metodológica y académica de
 5. **[Fase 4 & 5: Modelado Predictivo e Inferencia Futura](../src/05_modelado/probar_modelo_desabastecimiento.py)**
    * Implementación de algoritmos `RandomForestRegressor` para predecir demandas inducidas y generar alertas tempranas de escasez.
    * Simulación prospectiva de escenarios estacionales para el año 2027 ([prediccion_futura_2027.py](../src/05_modelado/prediccion_futura_2027.py)).
+
+6. **Arquitectura y Árboles de Decisión Funcionales (Reglas de Negocio y Clasificación Sí / No)**
+   * **[Árbol Base: Predicción de Demanda y Desabastecimiento](README_arbol_decision_prediccion.md)**: Flujo principal que integra `RandomForestRegressor` con la estimación de insumos médicos ($Casos \times 15$).
+   * **[Árbol 1: Alerta Temprana de Brote Climático](README_arbol_decision_brote_climatico.md)**: Detección de brotes hidrometeorológicos usando umbrales bioclimáticos ($T > 24^\circ\text{C}$, Humedad $> 75\%$) y corte de Tukey ($IQR > 378.4$ casos).
+   * **[Árbol 2: Reabastecimiento Hospitalario y Compras de Emergencia (SISMED)](README_arbol_decision_reabastecimiento_sismed.md)**: Gestión de stock hospitalario, umbrales de autonomía temporal ($< 15$ días) y transferencias interdepartamentales.
+   * **[Árbol 3: Priorización de Control Vectorial y Brigadas en Campo](README_arbol_decision_control_vectorial.md)**: Criterios para despliegue de fumigación espacial (ULV), control biolarvario (Bti) y movilización comunitaria según densidad larvaria ($\text{Breteau} \ge 5\%$) y aceleración epidémica.
+
