@@ -1,0 +1,26 @@
+import pandas as pd
+from pathlib import Path
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score
+from sklearn.preprocessing import StandardScaler
+
+df = pd.read_csv(Path("datos_procesados/dataset_escalado_standard_robust.csv"))
+
+V = ["Casos_Reportados", "Temperatura_Promedio", "Humedad_Ambiente"] 
+
+X = StandardScaler().fit_transform(df[V])
+
+for k in range(2, 9):
+    km = KMeans(n_clusters=k, n_init=10, random_state=42)
+    etiquetas = km.fit_predict(X)
+    sil = silhouette_score(X, etiquetas)
+    print(f"k={k} inercia={km.inertia_:.0f} silueta={sil:.3f}")
+
+k_elegido = 4
+km_final = KMeans(n_clusters=k_elegido, n_init=10, random_state=42)
+df["cluster"] = km_final.fit_predict(X)
+
+print(df["cluster"].value_counts().sort_index())
+
+perfil = df.groupby("cluster")[V].mean().round(1)
+print(perfil)

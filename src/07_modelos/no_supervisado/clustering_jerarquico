@@ -1,0 +1,23 @@
+from pathlib import Path
+import matplotlib.pyplot as plt
+import pandas as pd
+from scipy.cluster.hierarchy import dendrogram, linkage
+from sklearn.preprocessing import StandardScaler
+
+df = pd.read_csv(Path("datos_procesados/dataset_escalado_standard_robust.csv"))
+
+V = ["Casos_Reportados", "Temperatura_Promedio", "Humedad_Ambiente"]
+
+muestra = df[V].sample(n=60, random_state=42)
+
+Z = linkage(StandardScaler().fit_transform(muestra), method="ward")
+
+print("Primeras fusiones:", Z[:5, 2].round(1))
+print("Última fusión:", round(Z[-1, 2], 1))
+
+dendrogram(Z)
+plt.title("Dendrograma - Clustering Jerárquico")
+plt.xlabel("Índice de la muestra")
+plt.ylabel("Distancia de Ward")
+plt.savefig("dendrograma.png")
+plt.show()
