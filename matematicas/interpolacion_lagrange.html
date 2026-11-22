@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interpolación de Lagrange · Métodos Numéricos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --bg:#f5f6fb; --card:#ffffff; --ink:#1b2340; --muted:#5b6482; --line:#e3e6f0;
+  --indigo:#4f46e5; --indigo-soft:#eef0ff; --teal:#0d9488; --teal-soft:#e6f6f4;
+  --amber:#d97706; --amber-soft:#fff5e6; --rose:#e11d48; --rose-soft:#ffeef2;
+  --shadow:0 10px 30px rgba(27,35,64,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow:hidden}
+.deck{position:relative;height:100vh;width:100vw}
+.slide{position:absolute;inset:0;padding:clamp(18px,3.2vw,48px) clamp(20px,5vw,80px) 90px;display:flex;flex-direction:column;
+  opacity:0;pointer-events:none;transform:translateX(40px);transition:opacity .45s ease,transform .45s ease;overflow-y:auto}
+.slide.active{opacity:1;pointer-events:auto;transform:none}
+.slide.before{transform:translateX(-40px)}
+.kicker{font-size:clamp(12px,1vw,14px);font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--indigo);margin-bottom:6px}
+h1{font-size:clamp(32px,4.4vw,64px);line-height:1.05;font-weight:800;letter-spacing:-.02em}
+h2{font-size:clamp(24px,2.6vw,40px);font-weight:800;letter-spacing:-.01em;margin-bottom:clamp(10px,1.4vw,20px)}
+h3{font-size:clamp(16px,1.35vw,21px);font-weight:700;margin-bottom:8px}
+p,li{font-size:clamp(15px,1.25vw,20px);line-height:1.5}
+.muted{color:var(--muted)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:clamp(14px,2vw,32px);flex:1;min-height:0}
+.grid2.wide-right{grid-template-columns:.85fr 1.15fr}
+.grid2.wide-left{grid-template-columns:1.15fr .85fr}
+@media (max-width:900px){.grid2,.grid2.wide-right,.grid2.wide-left{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:clamp(14px,1.6vw,24px);box-shadow:var(--shadow)}
+.card.indigo{background:var(--indigo-soft);border-color:#d9dcff}
+.card.teal{background:var(--teal-soft);border-color:#c5ebe6}
+.card.amber{background:var(--amber-soft);border-color:#fde3bd}
+.card.rose{background:var(--rose-soft);border-color:#ffd0db}
+.stack{display:flex;flex-direction:column;gap:clamp(10px,1.2vw,16px)}
+.canvas-wrap{position:relative;width:100%;height:100%;min-height:300px}
+canvas{display:block;width:100%;height:100%}
+.pill{display:inline-block;padding:4px 12px;border-radius:999px;font-size:clamp(12px,1vw,14px);font-weight:600;background:var(--indigo-soft);color:var(--indigo)}
+button,.btn{align-self:flex-start;font:inherit;font-size:clamp(13px,1.05vw,16px);font-weight:600;border:none;border-radius:12px;padding:10px 16px;cursor:pointer;background:var(--indigo);color:#fff;transition:transform .12s,box-shadow .12s,background .2s}
+button:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(79,70,229,.25)}
+button.ghost{background:#fff;color:var(--indigo);border:1.5px solid #cfd3ff}
+button.teal{background:var(--teal)}
+button.amber{background:var(--amber)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+/* fragments */
+.frag{opacity:0;transform:translateY(10px);transition:opacity .4s,transform .4s}
+.frag.shown{opacity:1;transform:none}
+td.frag,th.frag{transform:none}
+/* tables */
+table{border-collapse:collapse;width:100%;font-size:clamp(14px,1.2vw,19px);font-variant-numeric:tabular-nums}
+th,td{padding:clamp(5px,.6vw,9px) 10px;text-align:center;border-bottom:1px solid var(--line)}
+th{background:var(--indigo);color:#fff;font-weight:600}
+th:first-child{border-radius:10px 0 0 0} th:last-child{border-radius:0 10px 0 0}
+tr.sum td{font-weight:800;background:var(--amber-soft);border-top:2px solid var(--amber)}
+.math-big{font-size:clamp(17px,1.6vw,26px)}
+.formula{background:#fff;border:1px dashed #c7cbe6;border-radius:14px;padding:12px 16px;overflow-x:auto}
+/* sliders */
+.slider{display:grid;grid-template-columns:80px 1fr 70px;align-items:center;gap:10px;font-weight:600}
+input[type=range]{width:100%;accent-color:var(--indigo)}
+.big-num{font-size:clamp(26px,2.8vw,44px);font-weight:800;font-variant-numeric:tabular-nums}
+.meter{height:14px;border-radius:999px;background:#e8eaf4;overflow:hidden}
+.meter>div{height:100%;width:0;background:linear-gradient(90deg,var(--rose),var(--amber),var(--teal));transition:width .25s}
+/* nav */
+.nav{position:fixed;left:0;right:0;bottom:0;height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(16px,3vw,40px);
+  background:rgba(245,246,251,.92);backdrop-filter:blur(8px);border-top:1px solid var(--line);z-index:50}
+.nav .title{font-size:14px;color:var(--muted);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:40vw}
+.nav .ctrls{display:flex;gap:8px;align-items:center}
+.nav button{padding:8px 14px}
+.counter{font-variant-numeric:tabular-nums;font-weight:700;min-width:64px;text-align:center}
+.progress{position:fixed;left:0;top:0;height:5px;background:linear-gradient(90deg,var(--indigo),var(--teal));z-index:60;transition:width .35s}
+.dots{display:flex;gap:6px}
+.dots span{width:8px;height:8px;border-radius:50%;background:#cfd3e6;cursor:pointer;transition:all .2s}
+.dots span.on{background:var(--indigo);width:22px;border-radius:6px}
+@media (max-width:800px){.dots{display:none}}
+.hint{font-size:13px;color:var(--muted)}
+/* cover */
+.cover{justify-content:center;background:radial-gradient(1200px 600px at 85% 20%,#e0e3ff 0%,transparent 60%),radial-gradient(900px 500px at 0% 100%,#d7f3ef 0%,transparent 60%)}
+.cover .meta{margin-top:28px;display:flex;gap:12px;flex-wrap:wrap}
+.cover canvas{position:absolute;right:4vw;bottom:110px;width:min(42vw,560px);height:min(32vw,380px);opacity:.95}
+@media (max-width:900px){.cover canvas{display:none}}
+/* quiz */
+.opt{display:block;width:100%;text-align:left;background:#fff;color:var(--ink);border:1.5px solid var(--line);margin-bottom:6px;font-weight:500;padding:8px 14px}
+.opt:hover{border-color:var(--indigo)}
+.opt.ok{background:var(--teal-soft);border-color:var(--teal)}
+.opt.bad{background:var(--rose-soft);border-color:var(--rose)}
+.feedback{font-weight:600;min-height:1.4em}
+.feedback.ok{color:var(--teal)} .feedback.bad{color:var(--rose)}
+input.num{font:inherit;font-size:18px;width:130px;padding:8px 10px;border-radius:10px;border:1.5px solid var(--line)}
+input.num:focus{outline:none;border-color:var(--indigo)}
+code,.mono{font-family:"JetBrains Mono",ui-monospace,monospace}
+.cmd{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#1b2340;color:#e8ebff;border-radius:10px;padding:8px 12px;font-family:"JetBrains Mono",monospace;font-size:clamp(12px,1vw,15px);margin-bottom:8px}
+.cmd button{padding:4px 10px;font-size:12px;background:#3b3fbf}
+#ggb{width:100%;height:100%;min-height:420px;border-radius:14px;overflow:hidden;background:#fff;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.tag{font-size:12px;font-weight:700;padding:3px 8px;border-radius:6px;background:var(--amber-soft);color:var(--amber)}
+.warn{color:var(--rose);font-weight:700}
+.step-badge{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background:var(--indigo);color:#fff;font-weight:800;margin-right:8px;font-size:15px}
+.toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%);background:#1b2340;color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;opacity:0;transition:opacity .3s;z-index:70}
+.toast.on{opacity:1}
+ul.clean{list-style:none} ul.clean li{padding-left:28px;position:relative;margin-bottom:8px}
+ul.clean li::before{content:"";position:absolute;left:6px;top:.6em;width:10px;height:10px;border-radius:3px;background:var(--indigo)}
+.bar-row{display:grid;grid-template-columns:34px 1fr 64px;gap:10px;align-items:center;margin-bottom:8px}
+.bar-track{position:relative;height:16px;background:#eef0f7;border-radius:8px;overflow:hidden}
+.bar-zero{position:absolute;left:50%;top:0;bottom:0;width:2px;background:#9aa1bd}
+.bar-fill{position:absolute;top:0;bottom:0;border-radius:6px;transition:all .15s}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="deck" id="deck">
+
+<!-- 1 PORTADA -->
+<section class="slide cover" data-title="Portada">
+  <div class="kicker">Métodos Numéricos · Ingeniería de Sistemas</div>
+  <h1>Interpolación<br>polinomial:<br><span style="color:var(--indigo)">método de Lagrange</span></h1>
+  <p class="muted" style="margin-top:18px;max-width:640px">Cómo construir el polinomio que pasa exactamente por un conjunto de puntos y usarlo para estimar valores intermedios, con un ejercicio guiado y verificación en GeoGebra.</p>
+  <div class="meta">
+    <span class="pill">UNIMINUTO · Ibagué</span>
+    <span class="pill" style="background:var(--teal-soft);color:var(--teal)">Prof. Juan Carlos González Sánchez</span>
+  </div>
+  <p class="hint" style="margin-top:28px">Usa ← → o la barra espaciadora para avanzar · F para pantalla completa</p>
+  <canvas id="cvCover"></canvas>
+</section>
+
+<!-- 2 QUE ES INTERPOLAR -->
+<section class="slide" data-title="¿Qué es interpolar?">
+  <div class="kicker">Motivación</div>
+  <h2>¿Qué es interpolar?</h2>
+  <div class="grid2 wide-right">
+    <div class="stack">
+      <div class="card">
+        <p>Tenemos una función conocida <b>solo en algunos puntos</b> (una tabla de datos, mediciones de un sensor, resultados de una simulación costosa) y necesitamos su valor <b>entre</b> esos puntos.</p>
+      </div>
+      <div class="card indigo frag" data-f="1">
+        <h3>Interpolar</h3>
+        <p>Construir una función sencilla, normalmente un polinomio, que pase <b>exactamente</b> por todos los puntos conocidos.</p>
+      </div>
+      <div class="card amber frag" data-f="2">
+        <h3>Diferencia con la regresión</h3>
+        <p>La regresión pasa <b>cerca</b> de los puntos porque los datos traen ruido. La interpolación supone datos <b>exactos</b> y pasa por todos ellos.</p>
+      </div>
+      <div class="row">
+        <button class="ghost" onclick="motivMode('pts')">Solo datos</button>
+        <button class="amber" onclick="motivMode('lin')">Unir con rectas</button>
+        <button class="teal" onclick="motivMode('poly')">Polinomio interpolante</button>
+      </div>
+    </div>
+    <div class="card"><div class="canvas-wrap"><canvas id="cvMotiv"></canvas></div></div>
+  </div>
+</section>
+
+<!-- 3 TEOREMA INTERACTIVO -->
+<section class="slide" data-title="Un polinomio único">
+  <div class="kicker">Actividad interactiva</div>
+  <h2>Por \(n+1\) puntos pasa un único polinomio de grado \(\le n\)</h2>
+  <div class="grid2 wide-right">
+    <div class="stack">
+      <div class="card indigo">
+        <p><b>Teorema.</b> Si los \(x_i\) son distintos, existe <b>un único</b> polinomio \(P_n(x)\) de grado \(\le n\) tal que</p>
+        <div class="math-big">$$P_n(x_i)=y_i,\quad i=0,1,\dots,n$$</div>
+      </div>
+      <div class="card">
+        <h3>Pruébalo</h3>
+        <ul class="clean">
+          <li><b>Clic</b> en la gráfica para agregar un punto.</li>
+          <li><b>Clic sobre un punto</b> para eliminarlo.</li>
+          <li>Observa cómo cambia el grado del polinomio.</li>
+        </ul>
+      </div>
+      <div class="card amber">
+        <div class="row" style="justify-content:space-between">
+          <div><div class="muted" style="font-weight:600">Puntos</div><div class="big-num" id="pgN">0</div></div>
+          <div><div class="muted" style="font-weight:600">Grado máximo</div><div class="big-num" id="pgDeg">—</div></div>
+        </div>
+      </div>
+      <div class="row">
+        <button class="ghost" onclick="pgReset()">Puntos de ejemplo</button>
+        <button class="ghost" onclick="pgClear()">Borrar todo</button>
+      </div>
+    </div>
+    <div class="card"><div class="canvas-wrap"><canvas id="cvPlay" style="cursor:crosshair"></canvas></div></div>
+  </div>
+</section>
+
+<!-- 4 IDEA DE LAGRANGE -->
+<section class="slide" data-title="La idea de Lagrange">
+  <div class="kicker">La idea clave</div>
+  <h2>Polinomios base: "encendidos" en un nodo y "apagados" en los demás</h2>
+  <div class="grid2 wide-right">
+    <div class="stack">
+      <div class="card indigo">
+        <p>Para cada nodo \(x_i\) se construye un polinomio \(L_i(x)\) que cumple</p>
+        <div class="math-big">$$L_i(x_j)=\begin{cases}1 & j=i\\ 0 & j\ne i\end{cases}$$</div>
+      </div>
+      <div class="card frag" data-f="1">
+        <p>Luego cada \(L_i\) se multiplica por su \(y_i\) y se suman:</p>
+        <div class="math-big">$$P(x)=y_0L_0(x)+y_1L_1(x)+y_2L_2(x)$$</div>
+        <p class="muted">En \(x_i\) solo queda encendido \(L_i\), así que \(P(x_i)=y_i\).</p>
+      </div>
+      <div class="row">
+        <button class="ghost" data-bv="0" onclick="baseMode(0)">L₀</button>
+        <button class="ghost" data-bv="1" onclick="baseMode(1)">L₁</button>
+        <button class="ghost" data-bv="2" onclick="baseMode(2)">L₂</button>
+        <button class="ghost" data-bv="all" onclick="baseMode('all')">Todas</button>
+        <button class="teal" data-bv="sum" onclick="baseMode('sum')">yᵢ·Lᵢ y suma</button>
+      </div>
+      <p class="hint">Ejemplo con los nodos x = 1, 3, 4 y los valores y = 2, 5, 3.</p>
+    </div>
+    <div class="card"><div class="canvas-wrap"><canvas id="cvBase"></canvas></div></div>
+  </div>
+</section>
+
+<!-- 5 FORMULA -->
+<section class="slide" data-title="Fórmula general">
+  <div class="kicker">Fundamento matemático</div>
+  <h2>El polinomio de Lagrange</h2>
+  <div class="grid2">
+    <div class="stack">
+      <div class="card indigo math-big">
+        $$P_n(x)=\sum_{i=0}^{n} y_i\,L_i(x)$$
+        $$L_i(x)=\prod_{\substack{j=0\\ j\ne i}}^{n}\frac{x-x_j}{x_i-x_j}$$
+      </div>
+      <div class="card frag" data-f="1">
+        <h3>Cómo leer \(L_i\)</h3>
+        <ul class="clean">
+          <li><b>Numerador:</b> \((x-x_j)\) para todos los nodos menos \(x_i\). Se anula en los otros nodos.</li>
+          <li><b>Denominador:</b> el mismo producto evaluado en \(x_i\). Normaliza para que \(L_i(x_i)=1\).</li>
+        </ul>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="card teal frag" data-f="2">
+        <h3>Grado 1 (2 puntos): interpolación lineal</h3>
+        $$P_1(x)=y_0\frac{x-x_1}{x_0-x_1}+y_1\frac{x-x_0}{x_1-x_0}$$
+      </div>
+      <div class="card amber frag" data-f="3">
+        <h3>Grado 2 (3 puntos): interpolación cuadrática</h3>
+        $$P_2(x)=y_0\frac{(x-x_1)(x-x_2)}{(x_0-x_1)(x_0-x_2)}+y_1\frac{(x-x_0)(x-x_2)}{(x_1-x_0)(x_1-x_2)}+y_2\frac{(x-x_0)(x-x_1)}{(x_2-x_0)(x_2-x_1)}$$
+      </div>
+      <div class="card rose frag" data-f="4">
+        <p><b>Ventaja:</b> no hay que resolver ningún sistema de ecuaciones. <b>Desventaja:</b> si se agrega un punto, hay que recalcular todos los \(L_i\).</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 6 ENUNCIADO -->
+<section class="slide" data-title="Ejercicio guiado: enunciado">
+  <div class="kicker">Ejercicio guiado</div>
+  <h2>Temperatura de un procesador</h2>
+  <div class="grid2 wide-left">
+    <div class="stack">
+      <div class="card">
+        <p>Un equipo de soporte registró la <b>temperatura</b> \(y\) (°C) de un servidor para distintos niveles de <b>carga de CPU</b> \(x\) (%):</p>
+      </div>
+      <div class="card"><table id="tblData"></table></div>
+      <div class="card indigo frag" data-f="1">
+        <h3>Objetivos</h3>
+        <ul class="clean">
+          <li>Construir el polinomio de Lagrange \(P_2(x)\) que pasa por los 3 puntos.</li>
+          <li>Estimar la temperatura con una carga del <b>65 %</b>.</li>
+          <li>Verificar el resultado en GeoGebra.</li>
+        </ul>
+      </div>
+      <div class="card amber frag" data-f="2"><p>Son 3 puntos (\(n=2\)), así que el polinomio es de <b>grado 2</b> como máximo.</p></div>
+    </div>
+    <div class="card"><div class="canvas-wrap"><canvas id="cvData"></canvas></div></div>
+  </div>
+</section>
+
+<!-- 7 PASO 1 -->
+<section class="slide" data-title="Paso 1: identificar nodos y L₀">
+  <div class="kicker"><span class="step-badge">1</span>Paso 1</div>
+  <h2>Identificar los nodos y construir \(L_0(x)\)</h2>
+  <div class="grid2">
+    <div class="stack">
+      <div class="card">
+        $$x_0=20,\ y_0=45 \qquad x_1=50,\ y_1=58 \qquad x_2=80,\ y_2=76$$
+      </div>
+      <div class="card frag math-big" data-f="1">$$L_0(x)=\frac{(x-x_1)(x-x_2)}{(x_0-x_1)(x_0-x_2)}$$</div>
+      <div class="card frag math-big" data-f="2">$$L_0(x)=\frac{(x-50)(x-80)}{(20-50)(20-80)}$$</div>
+    </div>
+    <div class="stack">
+      <div class="card teal frag math-big" data-f="3">$$\boxed{L_0(x)=\frac{(x-50)(x-80)}{1800}}$$</div>
+      <div class="card indigo frag" data-f="4">
+        <h3>Comprobación</h3>
+        $$L_0(20)=\frac{(-30)(-60)}{1800}=1 \qquad L_0(50)=0 \qquad L_0(80)=0 \ \checkmark$$
+      </div>
+      <div class="card rose frag" data-f="4">
+        <h3>Error típico</h3>
+        <p>Equivocarse en el denominador. Truco: el denominador es <b>el mismo numerador evaluado en \(x_0=20\)</b>: \((20-50)(20-80)=(-30)(-60)=+1800\).</p>
+      </div>
+      <button class="ghost" onclick="next()">Siguiente paso ▸</button>
+    </div>
+  </div>
+</section>
+
+<!-- 8 PASO 2 -->
+<section class="slide" data-title="Paso 2: L₁ y L₂">
+  <div class="kicker"><span class="step-badge">2</span>Paso 2</div>
+  <h2>Construir \(L_1(x)\) y \(L_2(x)\)</h2>
+  <div class="grid2">
+    <div class="stack math-big">
+      <div class="card">$$L_1(x)=\frac{(x-x_0)(x-x_2)}{(x_1-x_0)(x_1-x_2)}$$</div>
+      <div class="card frag" data-f="1">$$L_1(x)=\frac{(x-20)(x-80)}{(50-20)(50-80)}$$</div>
+      <div class="card teal frag" data-f="2">$$\boxed{L_1(x)=\frac{(x-20)(x-80)}{-900}}$$</div>
+    </div>
+    <div class="stack math-big">
+      <div class="card frag" data-f="3">$$L_2(x)=\frac{(x-x_0)(x-x_1)}{(x_2-x_0)(x_2-x_1)}$$</div>
+      <div class="card frag" data-f="4">$$L_2(x)=\frac{(x-20)(x-50)}{(80-20)(80-50)}$$</div>
+      <div class="card teal frag" data-f="5">$$\boxed{L_2(x)=\frac{(x-20)(x-50)}{1800}}$$</div>
+      <button class="ghost" onclick="next()" style="font-size:15px">Siguiente paso ▸</button>
+    </div>
+  </div>
+</section>
+
+<!-- 9 PASO 3 -->
+<section class="slide" data-title="Paso 3: evaluar en x = 65">
+  <div class="kicker"><span class="step-badge">3</span>Paso 3</div>
+  <h2>Evaluar cada \(L_i\) en \(x=65\)</h2>
+  <div class="grid2 wide-left">
+    <div class="stack">
+      <div class="card frag" data-f="1">$$L_0(65)=\frac{(65-50)(65-80)}{1800}=\frac{(15)(-15)}{1800}=-0.125$$</div>
+      <div class="card frag" data-f="2">$$L_1(65)=\frac{(65-20)(65-80)}{-900}=\frac{(45)(-15)}{-900}=0.75$$</div>
+      <div class="card frag" data-f="3">$$L_2(65)=\frac{(65-20)(65-50)}{1800}=\frac{(45)(15)}{1800}=0.375$$</div>
+      <div class="card amber frag" data-f="4">
+        <p><b>Verificación rápida:</b> los \(L_i\) siempre suman 1.</p>
+        $$-0.125+0.75+0.375=1\ \checkmark$$
+      </div>
+    </div>
+    <div class="stack">
+      <div class="card"><table id="tblEval"></table></div>
+      <div class="card teal frag math-big" data-f="5">
+        $$P_2(65)=\sum y_iL_i(65)$$
+        $$\boxed{P_2(65)=66.375\ ^\circ\text{C}}$$
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 10 PASO 4 -->
+<section class="slide" data-title="Paso 4: el polinomio">
+  <div class="kicker"><span class="step-badge">4</span>Paso 4</div>
+  <h2>El polinomio interpolante</h2>
+  <div class="grid2 wide-right">
+    <div class="stack">
+      <div class="card">
+        $$P_2(x)=45\,\frac{(x-50)(x-80)}{1800}+58\,\frac{(x-20)(x-80)}{-900}+76\,\frac{(x-20)(x-50)}{1800}$$
+      </div>
+      <div class="card frag" data-f="1">
+        <p>Expandiendo y agrupando términos:</p>
+        $$P_2(x)=\frac{x^2}{360}+\frac{43}{180}x+\frac{352}{9}$$
+        $$P_2(x)\approx 0.002778\,x^2+0.238889\,x+39.1111$$
+      </div>
+      <div class="card frag" data-f="2"><p>Se dibuja la curva: pasa <b>exactamente</b> por los tres puntos.</p></div>
+      <div class="card amber frag" data-f="3"><p>Estimación: con carga del 65 % el procesador estaría a unos <b>66.4 °C</b>.</p></div>
+      <button class="ghost" onclick="next()">Siguiente paso ▸</button>
+    </div>
+    <div class="card"><div class="canvas-wrap"><canvas id="cvModel"></canvas></div></div>
+  </div>
+</section>
+
+<!-- 11 PASO 5 EXPLORAR -->
+<section class="slide" data-title="Paso 5: explorar el modelo">
+  <div class="kicker"><span class="step-badge">5</span>Paso 5</div>
+  <h2>Explora: ¿cuánto "pesa" cada dato?</h2>
+  <div class="grid2 wide-right">
+    <div class="stack">
+      <div class="card">
+        <div class="slider"><span>\(x\) (%)</span><input type="range" id="sPred" min="0" max="100" step="1" value="65"><span id="vPred" class="mono">65</span></div>
+        <div class="big-num" style="margin-top:8px"><span id="predOut">66.38</span> <span style="font-size:.5em" class="muted">°C</span></div>
+        <div id="predWarn" class="feedback"></div>
+      </div>
+      <div class="card">
+        <h3>Pesos \(L_i(x)\)</h3>
+        <div id="bars"></div>
+        <p class="hint" style="margin-top:6px">Mueve \(x\) hasta un nodo (20, 50 u 80): ese peso vale 1 y los demás 0.</p>
+      </div>
+    </div>
+    <div class="card"><div class="canvas-wrap"><canvas id="cvPred"></canvas></div></div>
+  </div>
+</section>
+
+<!-- 12 RUNGE -->
+<section class="slide" data-title="Cuidado: fenómeno de Runge">
+  <div class="kicker">Limitaciones</div>
+  <h2>¿Más puntos siempre es mejor? El fenómeno de Runge</h2>
+  <div class="grid2 wide-right">
+    <div class="stack">
+      <div class="card">
+        <p>Interpolemos \(f(x)=\dfrac{1}{1+25x^2}\) en \([-1,1]\) con nodos <b>equiespaciados</b>.</p>
+        <div class="slider" style="margin-top:10px"><span>grado \(n\)</span><input type="range" id="sRunge" min="2" max="16" step="1" value="4"><span id="vRunge" class="mono">4</span></div>
+        <label class="row" style="margin-top:10px;font-size:15px"><input type="checkbox" id="chkCheb"> Usar nodos de Chebyshev</label>
+        <div style="margin-top:10px" class="muted">Error máximo: <b id="rungeErr" style="color:var(--rose)">—</b></div>
+      </div>
+      <div class="card rose">
+        <p>Con nodos equiespaciados, al subir el grado el polinomio <b>oscila cerca de los extremos</b> y el error crece en lugar de bajar.</p>
+      </div>
+      <div class="card teal">
+        <p><b>En la práctica:</b> se usan grados bajos por tramos (splines) o se agrupan los nodos hacia los extremos (Chebyshev).</p>
+      </div>
+    </div>
+    <div class="card"><div class="canvas-wrap"><canvas id="cvRunge"></canvas></div></div>
+  </div>
+</section>
+
+<!-- 13 PRACTICA -->
+<section class="slide" data-title="¡Tu turno!">
+  <div class="kicker">Práctica</div>
+  <h2>¡Tu turno! Resuélvelo y verifica</h2>
+  <div class="grid2">
+    <div class="stack">
+      <div class="card">
+        <p>Con los puntos de la tabla, usa Lagrange para estimar \(P_2(2)\):</p>
+        <table id="tblPractice" style="margin-top:10px"></table>
+      </div>
+      <div class="card indigo">
+        <div class="row"><label style="min-width:78px">\(L_0(2)=\)</label><input class="num" id="inL0" placeholder="ej. -1/3"></div>
+        <div class="row" style="margin-top:6px"><label style="min-width:78px">\(L_1(2)=\)</label><input class="num" id="inL1"></div>
+        <div class="row" style="margin-top:6px"><label style="min-width:78px">\(L_2(2)=\)</label><input class="num" id="inL2"></div>
+        <div class="row" style="margin-top:6px"><label style="min-width:78px">\(P_2(2)=\)</label><input class="num" id="inP"></div>
+        <div class="row" style="margin-top:10px">
+          <button onclick="checkPractice()">Verificar</button>
+          <button class="ghost" onclick="hintPractice()">Pista</button>
+          <button class="ghost" onclick="solvePractice()">Ver solución</button>
+        </div>
+        <div id="practiceFb" class="feedback" style="margin-top:8px"></div>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="card">
+        <h3>Pregunta conceptual 1</h3>
+        <p style="margin-bottom:10px">Con 5 puntos de \(x\) distintos, el polinomio de Lagrange tiene grado…</p>
+        <div data-quiz="b">
+          <button class="opt" data-k="a">a) Exactamente 5.</button>
+          <button class="opt" data-k="b">b) Como máximo 4.</button>
+          <button class="opt" data-k="c">c) Depende del método: Lagrange da uno distinto que Newton.</button>
+        </div>
+        <div class="feedback"></div>
+      </div>
+      <div class="card">
+        <h3>Pregunta conceptual 2</h3>
+        <p style="margin-bottom:10px">¿Cuánto vale \(L_1(x_2)\)?</p>
+        <div data-quiz="a">
+          <button class="opt" data-k="a">a) 0, porque \(L_1\) se anula en todos los nodos excepto \(x_1\).</button>
+          <button class="opt" data-k="b">b) 1, porque todos los \(L_i\) valen 1 en los nodos.</button>
+          <button class="opt" data-k="c">c) \(y_2\).</button>
+        </div>
+        <div class="feedback"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 14 GEOGEBRA -->
+<section class="slide" data-title="Verificación en GeoGebra">
+  <div class="kicker">Herramienta</div>
+  <h2>Verificación en GeoGebra</h2>
+  <div class="grid2" style="grid-template-columns:.8fr 1.2fr">
+    <div class="stack" style="overflow-y:auto">
+      <div class="card">
+        <p class="muted" style="margin-bottom:8px">Escribe en la <b>Entrada</b> (Vista Algebraica):</p>
+        <div class="cmd"><span>P = {(20,45),(50,58),(80,76)}</span><button onclick="copyCmd(this)">Copiar</button></div>
+        <div class="cmd frag" data-f="1"><span>L0(x) = (x-50)(x-80)/((20-50)(20-80))</span><button onclick="copyCmd(this)">Copiar</button></div>
+        <div class="cmd frag" data-f="1"><span>L1(x) = (x-20)(x-80)/((50-20)(50-80))</span><button onclick="copyCmd(this)">Copiar</button></div>
+        <div class="cmd frag" data-f="1"><span>L2(x) = (x-20)(x-50)/((80-20)(80-50))</span><button onclick="copyCmd(this)">Copiar</button></div>
+        <div class="cmd frag" data-f="2"><span>p(x) = 45 L0(x) + 58 L1(x) + 76 L2(x)</span><button onclick="copyCmd(this)">Copiar</button></div>
+        <div class="cmd frag" data-f="3"><span>q = Polinomio(P)</span><button onclick="copyCmd(this)">Copiar</button></div>
+        <div class="cmd frag" data-f="4"><span>A = (65, p(65))</span><button onclick="copyCmd(this)">Copiar</button></div>
+        <p class="hint"><code>Polinomio(P)</code> (en inglés <code>Polynomial(P)</code>) calcula directamente el polinomio interpolante. Si \(p\) y \(q\) coinciden, el cálculo manual está bien.</p>
+      </div>
+      <div class="card teal frag" data-f="5">
+        <h3>Para explorar</h3>
+        <p>Activa o desactiva \(L_0\), \(L_1\) y \(L_2\) en la Vista Algebraica para ver que cada uno vale 1 en su nodo y 0 en los demás. Mueve un punto de la lista y observa cómo cambia \(q\).</p>
+      </div>
+      <div class="row">
+        <button class="teal" onclick="ggbExample()">Cargar ejemplo</button>
+        <button class="ghost" onclick="ggbBlank()">Lienzo en blanco</button>
+        <a class="btn" style="text-decoration:none;background:#fff;color:var(--indigo);border:1.5px solid #cfd3ff" href="https://www.geogebra.org/classic" target="_blank" rel="noopener">Abrir GeoGebra ↗</a>
+      </div>
+    </div>
+    <div class="card" style="padding:10px"><div id="ggb">Cargando GeoGebra…</div></div>
+  </div>
+</section>
+
+<!-- 15 CIERRE -->
+<section class="slide" data-title="Resumen y tarea">
+  <div class="kicker">Cierre</div>
+  <h2>Resumen</h2>
+  <div class="grid2">
+    <div class="stack">
+      <div class="card indigo">
+        <ul class="clean">
+          <li>Por \(n+1\) puntos con \(x_i\) distintos pasa un <b>único</b> polinomio de grado \(\le n\).</li>
+          <li>Lagrange lo escribe como \(P_n(x)=\sum y_iL_i(x)\), con \(L_i(x)=\prod_{j\ne i}\frac{x-x_j}{x_i-x_j}\).</li>
+          <li>\(L_i(x_i)=1\), \(L_i(x_j)=0\) y \(\sum L_i(x)=1\) sirven para verificar.</li>
+          <li>Interpolar es confiable <b>dentro</b> del rango de los datos; extrapolar es riesgoso.</li>
+          <li>Grados altos con nodos equiespaciados → fenómeno de Runge.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="card amber">
+        <h3>Tarea</h3>
+        <ul class="clean">
+          <li>Resolver a mano la práctica y verificarla en GeoGebra (adjuntar captura).</li>
+          <li>Agregar el punto \((100,\ 95)\) al ejercicio del procesador, construir \(P_3(x)\) y estimar de nuevo \(P_3(65)\). ¿Cambió mucho?</li>
+          <li>Reto: implementar en Python <code>lagrange(xs, ys, x)</code> y compararla con <code>scipy.interpolate.lagrange</code>.</li>
+        </ul>
+      </div>
+      <div class="card teal">
+        <h3>Próxima clase</h3>
+        <p>Diferencias divididas de <b>Newton</b>: el mismo polinomio, pero se puede agregar un punto sin recalcular todo.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<nav class="nav">
+  <div class="title" id="navTitle"></div>
+  <div class="dots" id="dots"></div>
+  <div class="ctrls">
+    <button class="ghost" onclick="prev()">◂</button>
+    <span class="counter" id="counter"></span>
+    <button onclick="next()">▸</button>
+    <button class="ghost" onclick="toggleFS()" title="Pantalla completa">⛶</button>
+  </div>
+</nav>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================= UTILIDADES ================= */
+const fmt=(v,d=2)=>Number(v).toFixed(d);
+function lagrangeEval(xs,ys,x){let s=0;for(let i=0;i<xs.length;i++){s+=ys[i]*Li(xs,i,x);}return s;}
+function Li(xs,i,x){let L=1;for(let j=0;j<xs.length;j++)if(j!==i)L*=(x-xs[j])/(xs[i]-xs[j]);return L;}
+const X=[20,50,80], Y=[45,58,76];
+const P=x=>lagrangeEval(X,Y,x);
+const PRX=[0,1,3], PRY=[1,3,25];
+
+/* ================= GRAFICADOR ================= */
+const C={ink:'#1b2340',grid:'#e8eaf4',axis:'#9aa1bd',pt:'#4f46e5',teal:'#0d9488',rose:'#e11d48',amber:'#d97706',gray:'#9aa1bd'};
+const LCOL=['#4f46e5','#e11d48','#d97706','#0d9488'];
+function setupCanvas(cv){
+  const r=cv.getBoundingClientRect(),dpr=window.devicePixelRatio||1;
+  if(r.width<10||r.height<10) return null;
+  cv.width=Math.round(r.width*dpr);cv.height=Math.round(r.height*dpr);
+  const ctx=cv.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);
+  return {ctx,w:r.width,h:r.height};
+}
+function plot(cv,o){
+  const s=setupCanvas(cv);if(!s) return null;const {ctx,w,h}=s;
+  const m={l:o.ml??58,r:16,t:16,b:o.mb??46},W=w-m.l-m.r,H=h-m.t-m.b;
+  const sx=x=>m.l+(x-o.xmin)/(o.xmax-o.xmin)*W, sy=y=>m.t+H-(y-o.ymin)/(o.ymax-o.ymin)*H;
+  const ix=px=>o.xmin+(px-m.l)/W*(o.xmax-o.xmin), iy=py=>o.ymin+(m.t+H-py)/H*(o.ymax-o.ymin);
+  ctx.clearRect(0,0,w,h);
+  ctx.font='12px Inter,system-ui,sans-serif';ctx.lineWidth=1;
+  for(let x=Math.ceil(o.xmin/o.xstep)*o.xstep;x<=o.xmax+1e-9;x+=o.xstep){
+    ctx.strokeStyle=C.grid;ctx.beginPath();ctx.moveTo(sx(x),m.t);ctx.lineTo(sx(x),m.t+H);ctx.stroke();
+    ctx.fillStyle=C.axis;ctx.textAlign='center';ctx.fillText(+x.toFixed(2),sx(x),m.t+H+16);}
+  for(let y=Math.ceil(o.ymin/o.ystep)*o.ystep;y<=o.ymax+1e-9;y+=o.ystep){
+    ctx.strokeStyle=Math.abs(y)<1e-9&&o.zero?C.axis:C.grid;ctx.beginPath();ctx.moveTo(m.l,sy(y));ctx.lineTo(m.l+W,sy(y));ctx.stroke();
+    ctx.fillStyle=C.axis;ctx.textAlign='right';ctx.fillText(+y.toFixed(2),m.l-8,sy(y)+4);}
+  ctx.strokeStyle=C.axis;ctx.lineWidth=1.5;ctx.strokeRect(m.l,m.t,W,H);
+  ctx.fillStyle=C.ink;ctx.font='600 13px Inter,system-ui,sans-serif';
+  if(o.xlabel){ctx.textAlign='center';ctx.fillText(o.xlabel,m.l+W/2,h-8);}
+  if(o.ylabel){ctx.save();ctx.translate(14,m.t+H/2);ctx.rotate(-Math.PI/2);ctx.textAlign='center';ctx.fillText(o.ylabel,0,0);ctx.restore();}
+  ctx.save();ctx.beginPath();ctx.rect(m.l,m.t,W,H);ctx.clip();
+  if(o.shade){ctx.fillStyle='rgba(13,148,136,.07)';o.shade.forEach(([a,b])=>ctx.fillRect(sx(a),m.t,sx(b)-sx(a),H));}
+  (o.vlines||[]).forEach(v=>{ctx.strokeStyle=v.color||C.gray;ctx.setLineDash([4,4]);ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(sx(v.x),m.t);ctx.lineTo(sx(v.x),m.t+H);ctx.stroke();ctx.setLineDash([]);});
+  (o.curves||[]).forEach(c=>{ctx.strokeStyle=c.color;ctx.lineWidth=c.width||3;ctx.setLineDash(c.dash||[]);ctx.globalAlpha=c.alpha??1;ctx.beginPath();
+    const N=600;for(let i=0;i<=N;i++){const x=o.xmin+(o.xmax-o.xmin)*i/N;let y=c.f(x);y=Math.max(o.ymin-1e3*(o.ymax-o.ymin),Math.min(o.ymax+1e3*(o.ymax-o.ymin),y));i?ctx.lineTo(sx(x),sy(y)):ctx.moveTo(sx(x),sy(y));}
+    ctx.stroke();ctx.setLineDash([]);ctx.globalAlpha=1;});
+  (o.polyline?[o.polyline]:[]).forEach(pl=>{ctx.strokeStyle=pl.color;ctx.lineWidth=3;ctx.beginPath();pl.pts.forEach(([x,y],i)=>i?ctx.lineTo(sx(x),sy(y)):ctx.moveTo(sx(x),sy(y)));ctx.stroke();});
+  (o.pts||[]).forEach(([x,y],k)=>{const col=o.ptColors?o.ptColors[k]:C.pt;ctx.fillStyle='#fff';ctx.strokeStyle=col;ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(sx(x),sy(y),o.ptR||6,0,7);ctx.fill();ctx.stroke();
+    ctx.fillStyle=col;ctx.beginPath();ctx.arc(sx(x),sy(y),(o.ptR||6)/2,0,7);ctx.fill();
+    if(o.ptLabels){ctx.font='600 12px Inter';ctx.fillStyle=C.ink;ctx.textAlign='left';ctx.fillText(o.ptLabels[k],sx(x)+9,sy(y)-9);}});
+  (o.marks||[]).forEach(mk=>{const col=mk.color||C.amber;
+    if(mk.guide){ctx.strokeStyle=col;ctx.setLineDash([4,4]);ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(sx(mk.x),sy(o.ymin));ctx.lineTo(sx(mk.x),sy(mk.y));ctx.lineTo(sx(o.xmin),sy(mk.y));ctx.stroke();ctx.setLineDash([]);}
+    ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(sx(mk.x),sy(mk.y)-9);ctx.lineTo(sx(mk.x)+9,sy(mk.y));ctx.lineTo(sx(mk.x),sy(mk.y)+9);ctx.lineTo(sx(mk.x)-9,sy(mk.y));ctx.closePath();ctx.fill();
+    if(mk.label){ctx.font='700 13px Inter';ctx.textAlign=mk.left?'right':'left';ctx.fillText(mk.label,sx(mk.x)+(mk.left?-14:14),sy(mk.y)+(mk.below?24:-12));}});
+  ctx.restore();
+  if(o.legend){let yy=m.t+22;ctx.font='700 14px Inter';ctx.textAlign='left';
+    o.legend.forEach(l=>{ctx.fillStyle=l.color;ctx.fillRect(m.l+12,yy-9,16,4);ctx.fillText(l.text,m.l+34,yy-3);yy+=20;});}
+  return {sx,sy,ix,iy,m,W,H};
+}
+const PTS=X.map((x,i)=>[x,Y[i]]);
+const BASE={xmin:0,xmax:100,ymin:30,ymax:100,xstep:10,ystep:10,xlabel:'x: carga de CPU (%)',ylabel:'y: temperatura (°C)',pts:PTS,ptLabels:['(20, 45)','(50, 58)','(80, 76)']};
+
+/* ========== portada ========== */
+function drawCover(){
+  const xs=[0.5,1.6,2.8,3.9,5.2,6.3],ys=[2,4.6,3.3,5.8,4.4,6.6];
+  plot(document.getElementById('cvCover'),{xmin:0,xmax:7,ymin:0,ymax:8,xstep:1,ystep:2,ml:34,mb:30,pts:xs.map((x,i)=>[x,ys[i]]),
+    curves:xs.map((_,i)=>({f:x=>ys[i]*Li(xs,i,x),color:LCOL[i%4],width:1.5,dash:[4,4],alpha:.5})).concat([{f:x=>lagrangeEval(xs,ys,x),color:C.teal,width:3.5}])});
+}
+/* ========== motivacion ========== */
+const MX=[1,2.5,4,6,7.5],MY=[2,5.5,4.2,6.8,5];let motivState='pts';
+function motivMode(m){motivState=m;drawMotiv();}
+function drawMotiv(){
+  const o={xmin:0,xmax:8.5,ymin:0,ymax:9,xstep:1,ystep:1,pts:MX.map((x,i)=>[x,MY[i]]),xlabel:'x',ylabel:'y',vlines:[{x:5,color:C.rose}]};
+  if(motivState==='lin'){o.polyline={pts:o.pts,color:C.amber};o.marks=[{x:5,y:4.2+(6.8-4.2)*(1/2),color:C.amber,label:'¿y(5)? ≈ '+fmt(4.2+(6.8-4.2)/2,2)}];}
+  if(motivState==='poly'){const f=x=>lagrangeEval(MX,MY,x);o.curves=[{f,color:C.teal}];o.marks=[{x:5,y:f(5),color:C.teal,label:'¿y(5)? ≈ '+fmt(f(5),2)}];}
+  if(motivState==='pts'){o.marks=[{x:5,y:8.3,color:C.rose,label:'¿Cuánto vale y en x = 5?'}];}
+  plot(document.getElementById('cvMotiv'),o);
+}
+/* ========== interactivo: unicidad ========== */
+let pg=[];const PGDEF=[[-3,1],[-1,3],[1,0.5],[3,2.5]];let pgT=null;
+function pgReset(){pg=PGDEF.map(p=>p.slice());drawPG();}
+function pgClear(){pg=[];drawPG();}
+function drawPG(){
+  pg.sort((a,b)=>a[0]-b[0]);
+  const xs=pg.map(p=>p[0]),ys=pg.map(p=>p[1]);
+  document.getElementById('pgN').textContent=pg.length;
+  document.getElementById('pgDeg').textContent=pg.length?('≤ '+(pg.length-1)):'—';
+  const o={xmin:-5,xmax:5,ymin:-4,ymax:6,xstep:1,ystep:1,zero:true,pts:pg,xlabel:'x',ylabel:'y'};
+  if(pg.length>=1)o.curves=[{f:x=>lagrangeEval(xs,ys,x),color:C.teal}];
+  if(pg.length)o.legend=[{color:C.teal,text:'P(x) de grado ≤ '+(pg.length-1)}];
+  pgT=plot(document.getElementById('cvPlay'),o);
+}
+document.getElementById('cvPlay').addEventListener('click',e=>{
+  if(!pgT) return;const r=e.target.getBoundingClientRect(),px=e.clientX-r.left,py=e.clientY-r.top;
+  const hit=pg.findIndex(([x,y])=>Math.hypot(pgT.sx(x)-px,pgT.sy(y)-py)<12);
+  if(hit>=0){pg.splice(hit,1);}
+  else{let x=Math.round(pgT.ix(px)*10)/10,y=Math.round(pgT.iy(py)*10)/10;
+    if(pg.some(p=>Math.abs(p[0]-x)<0.15)){toast('Ya hay un punto con ese x: los nodos deben ser distintos');return;}
+    if(pg.length>=9){toast('Máximo 9 puntos');return;}pg.push([x,y]);}
+  drawPG();
+});
+/* ========== bases ========== */
+const BX=[1,3,4],BY=[2,5,3];let bMode='all';
+function baseMode(m){bMode=m;document.querySelectorAll('[data-bv]').forEach(b=>{const on=b.dataset.bv===String(m);b.style.background=on?'var(--indigo)':'';b.style.color=on?'#fff':'';});drawBase();}
+function drawBase(){
+  const cv=document.getElementById('cvBase');
+  if(bMode==='sum'){
+    plot(cv,{xmin:0,xmax:5,ymin:-3,ymax:7,xstep:1,ystep:1,zero:true,xlabel:'x',ylabel:'y',pts:BX.map((x,i)=>[x,BY[i]]),
+      vlines:BX.map(x=>({x})),
+      curves:BX.map((_,i)=>({f:x=>BY[i]*Li(BX,i,x),color:LCOL[i],width:2,dash:[6,5]})).concat([{f:x=>lagrangeEval(BX,BY,x),color:C.teal,width:4}]),
+      legend:[{color:LCOL[0],text:'2·L₀(x)'},{color:LCOL[1],text:'5·L₁(x)'},{color:LCOL[2],text:'3·L₂(x)'},{color:C.teal,text:'P(x) = suma'}]});
+  } else {
+    const idx=bMode==='all'?[0,1,2]:[bMode];
+    const pts=[],cols=[];idx.forEach(i=>BX.forEach((x,j)=>{pts.push([x,i===j?1:0]);cols.push(LCOL[i]);}));
+    plot(cv,{xmin:0,xmax:5,ymin:-1.5,ymax:2.5,xstep:1,ystep:0.5,zero:true,xlabel:'x',ylabel:'Lᵢ(x)',vlines:BX.map(x=>({x})),
+      curves:idx.map(i=>({f:x=>Li(BX,i,x),color:LCOL[i],width:3})),pts,ptColors:cols,ptR:5,
+      legend:idx.map(i=>({color:LCOL[i],text:`L${'₀₁₂'[i]}(x): vale 1 en x = ${BX[i]}, 0 en los demás`}))});
+  }
+}
+/* ========== tablas ========== */
+function buildTables(){
+  document.getElementById('tblData').innerHTML='<tr><th style="border-radius:8px 0 0 8px">x: carga (%)</th>'+X.map(x=>`<td>${x}</td>`).join('')+'</tr><tr><th style="border-radius:8px 0 0 8px">y: temperatura (°C)</th>'+Y.map(y=>`<td>${y}</td>`).join('')+'</tr>';
+  let t='<tr><th>i</th><th>y<sub>i</sub></th><th class="frag" data-f="1">L<sub>i</sub>(65)</th><th class="frag" data-f="4">y<sub>i</sub>·L<sub>i</sub>(65)</th></tr>';
+  const fs=[1,2,3];
+  X.forEach((x,i)=>{const l=Li(X,i,65);t+=`<tr><td>${i}</td><td>${Y[i]}</td><td class="frag" data-f="${fs[i]}">${fmt(l,3)}</td><td class="frag" data-f="4">${fmt(Y[i]*l,3)}</td></tr>`;});
+  t+=`<tr class="sum"><td>Σ</td><td></td><td class="frag" data-f="4">1.000</td><td class="frag" data-f="5">${fmt(P(65),3)}</td></tr>`;
+  document.getElementById('tblEval').innerHTML=t;
+  document.getElementById('tblPractice').innerHTML='<tr><th>i</th><th>x<sub>i</sub></th><th>y<sub>i</sub></th></tr>'+PRX.map((x,i)=>`<tr><td>${i}</td><td>${x}</td><td>${PRY[i]}</td></tr>`).join('');
+  document.getElementById('bars').innerHTML=[0,1,2].map(i=>`<div class="bar-row"><span class="mono" style="color:${LCOL[i]};font-weight:700">L${'₀₁₂'[i]}</span><div class="bar-track"><div class="bar-zero"></div><div class="bar-fill" id="bar${i}" style="background:${LCOL[i]}"></div></div><span class="mono" id="barv${i}">0</span></div>`).join('');
+}
+/* ========== datos / modelo / prediccion ========== */
+function drawData(){plot(document.getElementById('cvData'),{...BASE,vlines:[{x:65,color:C.rose}],marks:[{x:65,y:95,color:C.rose,label:'¿T(65 %)?',left:true}]});}
+function drawModel(rev){
+  const o={...BASE};
+  if(rev>=2){o.curves=[{f:P,color:C.teal}];o.legend=[{color:C.teal,text:'P₂(x) = x²/360 + 43x/180 + 352/9'}];}
+  if(rev>=3){o.marks=[{x:65,y:P(65),guide:true,color:C.amber,label:'P₂(65) = 66.375 °C',left:true,below:false}];}
+  plot(document.getElementById('cvModel'),o);
+}
+function drawPred(){
+  const x=+document.getElementById('sPred').value,y=P(x);
+  document.getElementById('vPred').textContent=x;document.getElementById('predOut').textContent=fmt(y);
+  const w=document.getElementById('predWarn');
+  if(x<20||x>80){w.textContent='⚠ Extrapolación: fuera del rango de los datos (20 a 80 %)';w.className='feedback bad';}
+  else{w.textContent='✔ Interpolación: dentro del rango de los datos';w.className='feedback ok';}
+  [0,1,2].forEach(i=>{const l=Li(X,i,x),b=document.getElementById('bar'+i);const mx=1.5,wd=Math.min(Math.abs(l),mx)/mx*50;
+    b.style.width=wd+'%';b.style.left=l>=0?'50%':(50-wd)+'%';document.getElementById('barv'+i).textContent=fmt(l,3);});
+  plot(document.getElementById('cvPred'),{...BASE,shade:[[20,80]],curves:[{f:P,color:C.teal}],
+    marks:[{x,y,guide:true,color:(x<20||x>80)?C.rose:C.amber,label:`P₂(${x}) = ${fmt(y)} °C`,left:x>60}]});
+}
+/* ========== Runge ========== */
+function drawRunge(){
+  const n=+document.getElementById('sRunge').value,cheb=document.getElementById('chkCheb').checked;
+  document.getElementById('vRunge').textContent=n;
+  const f=x=>1/(1+25*x*x);
+  const xs=[];for(let i=0;i<=n;i++)xs.push(cheb?Math.cos((2*i+1)*Math.PI/(2*(n+1))):-1+2*i/n);
+  const ys=xs.map(f),p=x=>lagrangeEval(xs,ys,x);
+  let err=0;for(let k=0;k<=2000;k++){const x=-1+2*k/2000;err=Math.max(err,Math.abs(f(x)-p(x)));}
+  document.getElementById('rungeErr').textContent=fmt(err,4);
+  plot(document.getElementById('cvRunge'),{xmin:-1.05,xmax:1.05,ymin:-1,ymax:2,xstep:0.25,ystep:0.5,zero:true,xlabel:'x',ylabel:'y',
+    pts:xs.map((x,i)=>[x,ys[i]]),ptR:5,
+    curves:[{f,color:C.gray,width:3},{f:p,color:cheb?C.teal:C.rose,width:3}],
+    legend:[{color:C.gray,text:'f(x) = 1/(1+25x²)'},{color:cheb?C.teal:C.rose,text:`P${n}(x) con nodos ${cheb?'de Chebyshev':'equiespaciados'}`}]});
+}
+/* ========== practica ========== */
+function parseNum(s){s=String(s).trim().replace(',','.');if(!s)return NaN;if(s.includes('/')){const [a,b]=s.split('/');return parseFloat(a)/parseFloat(b);}return parseFloat(s);}
+const PRL=[0,1,2].map(i=>Li(PRX,i,2)),PRP=lagrangeEval(PRX,PRY,2);
+function checkPractice(){
+  const ids=['inL0','inL1','inL2','inP'],sol=[...PRL,PRP],names=['L₀(2)','L₁(2)','L₂(2)','P₂(2)'];
+  const fb=document.getElementById('practiceFb');const vals=ids.map(id=>parseNum(document.getElementById(id).value));
+  if(vals.some(isNaN)){fb.textContent='Completa los cuatro valores (puedes escribir fracciones como -1/3).';fb.className='feedback bad';return;}
+  const ok=vals.map((v,i)=>Math.abs(v-sol[i])<0.011);
+  ids.forEach((id,i)=>document.getElementById(id).style.borderColor=ok[i]?'var(--teal)':'var(--rose)');
+  if(ok.every(Boolean)){fb.textContent='¡Correcto! 🎉  P₂(2) = 11';fb.className='feedback ok';confetti();}
+  else{fb.textContent='Revisa: '+names.filter((_,i)=>!ok[i]).join(', ');fb.className='feedback bad';}
+}
+function hintPractice(){const fb=document.getElementById('practiceFb');
+  fb.innerHTML='L₀(x) = (x−1)(x−3)/((0−1)(0−3)) = (x−1)(x−3)/3. Construye L₁ y L₂ de la misma forma y evalúa en x = 2.';fb.className='feedback';}
+function solvePractice(){const fb=document.getElementById('practiceFb');
+  fb.innerHTML='L₀(2) = (1)(−1)/3 = <b>−1/3</b> · L₁(2) = (2)(−1)/((1)(−2)) = <b>1</b> · L₂(2) = (2)(1)/((3)(2)) = <b>1/3</b><br>P₂(2) = 1(−1/3) + 3(1) + 25(1/3) = <b>11</b>';fb.className='feedback ok';}
+document.querySelectorAll('[data-quiz]').forEach(q=>{
+  q.querySelectorAll('.opt').forEach(b=>b.addEventListener('click',()=>{
+    const good=b.dataset.k===q.dataset.quiz,fb=q.nextElementSibling;
+    q.querySelectorAll('.opt').forEach(x=>x.classList.remove('ok','bad'));b.classList.add(good?'ok':'bad');
+    fb.textContent=good?'¡Exacto!':'Revisa de nuevo…';fb.className='feedback '+(good?'ok':'bad');}));
+});
+function confetti(){
+  const c=document.createElement('canvas');c.style.cssText='position:fixed;inset:0;pointer-events:none;z-index:80;width:100vw;height:100vh';document.body.appendChild(c);
+  c.width=innerWidth;c.height=innerHeight;const ctx=c.getContext('2d');const cols=['#4f46e5','#0d9488','#d97706','#e11d48'];
+  const ps=Array.from({length:120},()=>({x:innerWidth/2,y:innerHeight/2,vx:(Math.random()-.5)*14,vy:Math.random()*-14-4,c:cols[Math.random()*4|0],s:4+Math.random()*5}));
+  let f=0;(function an(){ctx.clearRect(0,0,c.width,c.height);ps.forEach(p=>{p.vy+=.45;p.x+=p.vx;p.y+=p.vy;ctx.fillStyle=p.c;ctx.fillRect(p.x,p.y,p.s,p.s);});
+    if(++f<110)requestAnimationFrame(an);else c.remove();})();
+}
+/* ========== GeoGebra ========== */
+let ggbApi=null,ggbRequested=false;
+function loadGGB(){
+  if(ggbRequested) return;ggbRequested=true;
+  const s=document.createElement('script');s.src='https://www.geogebra.org/apps/deployggb.js';
+  s.onload=()=>{const el=document.getElementById('ggb');el.textContent='';
+    new GGBApplet({appName:'classic',width:Math.max(400,el.clientWidth),height:Math.max(380,el.clientHeight),perspective:'AG',
+      showToolBar:true,showAlgebraInput:true,showMenuBar:false,showResetIcon:false,enableShiftDragZoom:true,language:'es',
+      appletOnLoad:api=>{ggbApi=api;ggbExample();}},true).inject('ggb');};
+  s.onerror=()=>{document.getElementById('ggb').innerHTML='<div style="padding:20px;text-align:center">No se pudo cargar GeoGebra (¿sin conexión?).<br>Usa el botón <b>Abrir GeoGebra ↗</b>.</div>';};
+  document.head.appendChild(s);
+}
+function ggbExample(){
+  if(!ggbApi){toast('GeoGebra aún está cargando…');return;}
+  ggbApi.newConstruction();
+  ['P={(20,45),(50,58),(80,76)}','L0(x)=(x-50)(x-80)/((20-50)(20-80))','L1(x)=(x-20)(x-80)/((50-20)(50-80))','L2(x)=(x-20)(x-50)/((80-20)(80-50))',
+   'p(x)=45 L0(x)+58 L1(x)+76 L2(x)','q=Polynomial(P)','A=(65,p(65))'].forEach(c=>ggbApi.evalCommand(c));
+  try{['L0','L1','L2'].forEach(n=>ggbApi.setVisible(n,false));ggbApi.setColor('p',13,148,136);ggbApi.setLineThickness('p',7);
+    ggbApi.setColor('q',225,29,72);ggbApi.setLineStyle('q',1);ggbApi.setColor('A',217,119,6);ggbApi.setPointSize('A',6);ggbApi.setColor('P',79,70,229);}catch(e){}
+  ggbApi.setCoordSystem(-5,105,20,100);
+}
+function ggbBlank(){if(!ggbApi){toast('GeoGebra aún está cargando…');return;}ggbApi.newConstruction();ggbApi.setCoordSystem(-5,105,20,100);}
+function copyCmd(b){const t=b.previousElementSibling.textContent;
+  (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast('Copiado: '+t)).catch(()=>toast(t));}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),2000);}
+
+/* ================= NAVEGACION ================= */
+buildTables();
+const slides=[...document.querySelectorAll('.slide')];
+const rev=slides.map(()=>0);let cur=0;
+const groups=s=>[...new Set([...s.querySelectorAll('[data-f]')].map(e=>+e.dataset.f))].sort((a,b)=>a-b);
+const RENDER={'Portada':drawCover,'¿Qué es interpolar?':drawMotiv,'Un polinomio único':drawPG,'La idea de Lagrange':drawBase,
+  'Ejercicio guiado: enunciado':drawData,'Paso 4: el polinomio':()=>drawModel(rev[cur]),'Paso 5: explorar el modelo':drawPred,
+  'Cuidado: fenómeno de Runge':drawRunge,'Verificación en GeoGebra':loadGGB};
+function render(){const f=RENDER[slides[cur].dataset.title];if(f)f();}
+function applyFrags(i){const g=groups(slides[i]);slides[i].querySelectorAll('[data-f]').forEach(e=>e.classList.toggle('shown',g.indexOf(+e.dataset.f)<rev[i]));}
+function goTo(i){
+  if(i<0||i>=slides.length) return;cur=i;
+  slides.forEach((s,k)=>{s.classList.toggle('active',k===i);s.classList.toggle('before',k<i);});
+  applyFrags(i);
+  document.getElementById('counter').textContent=(i+1)+' / '+slides.length;
+  document.getElementById('navTitle').textContent=slides[i].dataset.title;
+  document.getElementById('progress').style.width=((i+1)/slides.length*100)+'%';
+  document.querySelectorAll('#dots span').forEach((d,k)=>d.classList.toggle('on',k===i));
+  history.replaceState(null,'','#'+(i+1));
+  requestAnimationFrame(()=>requestAnimationFrame(render));
+}
+function next(){const g=groups(slides[cur]);if(rev[cur]<g.length){rev[cur]++;applyFrags(cur);render();}else goTo(cur+1);}
+function prev(){if(rev[cur]>0){rev[cur]--;applyFrags(cur);render();}else goTo(cur-1);}
+function toggleFS(){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen().catch(()=>{});}
+const dots=document.getElementById('dots');
+slides.forEach((s,k)=>{const d=document.createElement('span');d.title=s.dataset.title;d.onclick=()=>goTo(k);dots.appendChild(d);});
+document.addEventListener('keydown',e=>{
+  const tag=(e.target.tagName||'').toLowerCase();
+  if(tag==='input'||tag==='textarea'||(e.target.closest&&e.target.closest('#ggb'))) return;
+  if(['ArrowRight','PageDown',' '].includes(e.key)){e.preventDefault();next();}
+  else if(['ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();prev();}
+  else if(e.key==='Home')goTo(0);else if(e.key==='End')goTo(slides.length-1);
+  else if(e.key==='f'||e.key==='F')toggleFS();
+});
+let tx=null;document.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;},{passive:true});
+document.addEventListener('touchend',e=>{if(tx===null)return;const dx=e.changedTouches[0].clientX-tx;
+  if(!e.target.closest('input,#ggb,canvas')){if(dx<-60)next();else if(dx>60)prev();}tx=null;});
+document.getElementById('sPred').addEventListener('input',drawPred);
+document.getElementById('sRunge').addEventListener('input',drawRunge);
+document.getElementById('chkCheb').addEventListener('change',drawRunge);
+let rz;window.addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(render,120);});
+window.addEventListener('load',()=>{
+  if(window.renderMathInElement) renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false});
+  render();
+});
+pgReset();baseMode('all');
+const start=parseInt(location.hash.slice(1));goTo(isNaN(start)?0:Math.min(slides.length,Math.max(1,start))-1);
+</script>
+</body>
+</html>

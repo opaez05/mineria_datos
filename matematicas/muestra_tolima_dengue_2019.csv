@@ -1,0 +1,8 @@
+Departamento,ANO,mes,COD_EVE,Nombre_evento,Casos_Reportados,Temperatura_Promedio,Lluvias_Acumuladas,Humedad_Ambiente,Medicamentos_Vendidos,Rol_Muestra
+TOLIMA,2019,1,210,DENGUE,512,27.29,29.11,63.54,16334,Regresion + Nodo L0
+TOLIMA,2019,2,210,DENGUE,558,27.79,54.44,58.75,13017,Regresion
+TOLIMA,2019,3,210,DENGUE,821,25.06,77.11,70.28,18341,Regresion + Nodo L1
+TOLIMA,2019,4,210,DENGUE,1340,25.18,173.46,76.83,24471,Regresion
+TOLIMA,2019,5,210,DENGUE,1099,24.96,121.61,71.71,21385,Regresion + Validacion Lagrange
+TOLIMA,2019,6,210,DENGUE,1121,26.46,106.52,69.95,23424,Regresion + Nodo L2
+TOLIMA,2019,7,210,DENGUE,1667,28.19,55.49,61.71,29729,Validacion Extrapolacion Regresion

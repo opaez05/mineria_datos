@@ -1,0 +1,1500 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sustentación Final · Predicción de Brotes de Dengue y Desabastecimiento · UNIMINUTO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#002855;
+  --navy-deep:#001c3d;
+  --blue:#004B93;
+  --blue-soft:#eaf2fb;
+  --gold:#F2A900;
+  --gold-bright:#FFD000;
+  --gold-soft:#fff7e0;
+  --teal:#0d9488;
+  --teal-soft:#e6f6f4;
+  --rose:#e11d48;
+  --rose-soft:#fff0f3;
+  --bg:#f5f7fb;
+  --card:#ffffff;
+  --ink:#0f172a;
+  --muted:#52607a;
+  --line:#dfe5f0;
+  --shadow:0 8px 26px rgba(0,40,85,.07);
+  --shadow-lg:0 16px 40px rgba(0,40,85,.12);
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{
+  height:100%;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* Top institutional bar + progress */
+.top-accent{
+  position:fixed;left:0;right:0;top:0;height:4px;
+  background:linear-gradient(90deg,var(--navy) 0%,var(--blue) 70%,var(--gold) 100%);
+  z-index:70;
+}
+.progress{
+  position:fixed;left:0;top:4px;height:3px;width:10%;
+  background:linear-gradient(90deg,var(--gold),var(--teal));
+  transition:width .35s cubic-bezier(.4,0,.2,1);
+  z-index:70;
+}
+
+/* Persistent discreet UNIMINUTO brand badge (top-right) */
+.brand-corner{
+  position:fixed;top:16px;right:clamp(18px,3.2vw,44px);z-index:60;
+  display:flex;align-items:center;gap:10px;
+  background:rgba(255,255,255,.92);
+  backdrop-filter:blur(8px);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:6px 12px;
+  box-shadow:0 4px 14px rgba(0,40,85,.06);
+  transition:opacity .25s ease;
+}
+.brand-corner img{height:28px;width:auto;display:block}
+.brand-corner.on-cover{padding:8px 15px}
+.brand-corner.on-cover img{height:34px}
+
+/* Deck & Slide layout */
+.deck{position:relative;height:100vh;width:100vw}
+.slide{
+  position:absolute;inset:0;
+  padding:clamp(22px,2.8vh,36px) clamp(22px,3.8vw,64px) 74px;
+  display:flex;flex-direction:column;
+  opacity:0;pointer-events:none;
+  transform:translateX(36px);
+  transition:opacity .4s ease,transform .4s cubic-bezier(.22,1,.36,1);
+  overflow-y:auto;
+  background:
+    radial-gradient(900px 420px at 95% 0%,rgba(0,75,147,.06),transparent 62%),
+    radial-gradient(760px 380px at 0% 100%,rgba(242,169,0,.07),transparent 60%),
+    var(--bg);
+}
+.slide.active{opacity:1;pointer-events:auto;transform:none}
+.slide.before{transform:translateX(-36px)}
+
+/* Header per slide */
+.slide-head{padding-right:190px;margin-bottom:clamp(10px,1.5vh,18px);flex-shrink:0}
+.kicker{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:clamp(11px,.9vw,12.5px);font-weight:800;letter-spacing:.11em;text-transform:uppercase;
+  color:var(--blue);margin-bottom:5px;
+}
+.kicker::before{content:"";width:18px;height:3px;border-radius:3px;background:var(--gold)}
+h1{font-size:clamp(28px,3.5vw,48px);line-height:1.08;font-weight:900;letter-spacing:-.025em;color:var(--navy)}
+h2{font-size:clamp(20px,2.15vw,31px);line-height:1.15;font-weight:800;letter-spacing:-.018em;color:var(--navy)}
+h3{font-size:clamp(13.5px,1.1vw,16.5px);font-weight:800;color:var(--navy);margin-bottom:5px}
+p,li{font-size:clamp(12.5px,.98vw,14.8px);line-height:1.45;color:#27344c}
+.muted{color:var(--muted)}
+.mono{font-family:"JetBrains Mono",ui-monospace,Consolas,monospace;font-variant-numeric:tabular-nums}
+.num{font-variant-numeric:tabular-nums}
+
+/* Grid helpers */
+.body-fill{flex:1;min-height:0;display:flex;flex-direction:column;gap:clamp(10px,1.3vh,16px)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:clamp(12px,1.5vw,22px);flex:1;min-height:0}
+.grid2.w-left{grid-template-columns:1.12fr .88fr}
+.grid2.w-right{grid-template-columns:.88fr 1.12fr}
+.grid2.w-42{grid-template-columns:.84fr 1.16fr}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(10px,1.2vw,16px)}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(10px,1.1vw,14px)}
+.stack{display:flex;flex-direction:column;gap:clamp(8px,1.1vh,13px);min-height:0}
+@media (max-width:960px){
+  .grid2,.grid2.w-left,.grid2.w-right,.grid2.w-42,.grid3,.grid4{grid-template-columns:1fr}
+  .slide-head{padding-right:0;margin-top:34px}
+}
+
+/* Cards */
+.card{
+  background:var(--card);border:1px solid var(--line);border-radius:16px;
+  padding:clamp(12px,1.3vw,18px);box-shadow:var(--shadow);
+}
+.card.navy{background:linear-gradient(135deg,var(--navy) 0%,var(--blue) 100%);color:#fff;border-color:transparent}
+.card.navy h3,.card.navy p,.card.navy li{color:#eef4ff}
+.card.navy strong,.card.navy b{color:#fff}
+.card.blue{background:var(--blue-soft);border-color:#c9ddf4}
+.card.gold{background:var(--gold-soft);border-color:#f6d98a}
+.card.teal{background:var(--teal-soft);border-color:#b6e6df}
+.card.rose{background:var(--rose-soft);border-color:#fcc7d4}
+.card.accent-l{border-left:4px solid var(--blue)}
+.card.accent-gold{border-left:4px solid var(--gold)}
+.card.accent-teal{border-left:4px solid var(--teal)}
+.card.accent-rose{border-left:4px solid var(--rose)}
+
+/* Pills & badges */
+.pill{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:4px 11px;border-radius:999px;font-size:12px;font-weight:700;
+  background:var(--blue-soft);color:var(--blue);border:1px solid #cfe0f5;
+}
+.pill.gold{background:var(--gold-soft);color:#946200;border-color:#f2d179}
+.pill.teal{background:var(--teal-soft);color:#0f766e;border-color:#ade2da}
+.pill.rose{background:var(--rose-soft);color:#be123c;border-color:#fabbc9}
+.pill.navy{background:var(--navy);color:#fff;border-color:var(--navy)}
+
+/* Clean bullet list */
+ul.clean{list-style:none}
+ul.clean li{position:relative;padding-left:18px;margin-bottom:6px}
+ul.clean li:last-child{margin-bottom:0}
+ul.clean li::before{
+  content:"";position:absolute;left:0;top:.52em;width:7px;height:7px;border-radius:2px;background:var(--blue);
+}
+ul.clean.gold li::before{background:var(--gold)}
+ul.clean.teal li::before{background:var(--teal)}
+ul.clean.rose li::before{background:var(--rose)}
+
+/* KPI boxes */
+.kpi-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.kpi-row.k4{grid-template-columns:repeat(2,1fr)}
+.kpi{
+  background:#fff;border:1px solid var(--line);border-radius:14px;
+  padding:11px 12px;box-shadow:0 4px 12px rgba(0,40,85,.04);
+}
+.kpi .lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.kpi .val{font-size:clamp(20px,1.9vw,28px);font-weight:900;color:var(--navy);margin-top:2px;font-variant-numeric:tabular-nums}
+.kpi .sub{font-size:11.5px;color:var(--muted);margin-top:2px;line-height:1.3}
+
+/* Cover specific */
+.cover{
+  justify-content:center;
+  background:
+    radial-gradient(1000px 560px at 92% 18%,rgba(0,75,147,.12),transparent 62%),
+    radial-gradient(820px 480px at 4% 96%,rgba(242,169,0,.14),transparent 58%),
+    linear-gradient(160deg,#ffffff 0%,#f3f6fc 100%);
+}
+.cover-grid{display:grid;grid-template-columns:1.22fr .78fr;gap:clamp(20px,3vw,44px);align-items:center}
+@media (max-width:960px){.cover-grid{grid-template-columns:1fr}}
+.author-strip{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+.author-chip{
+  display:flex;align-items:center;gap:10px;
+  background:#fff;border:1px solid var(--line);border-radius:14px;
+  padding:9px 14px;box-shadow:0 4px 14px rgba(0,40,85,.05);
+}
+.avatar{
+  width:34px;height:34px;border-radius:10px;
+  background:linear-gradient(135deg,var(--navy),var(--blue));
+  color:#fff;font-weight:800;font-size:12px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.avatar.gold{background:linear-gradient(135deg,#d98a00,var(--gold));color:var(--navy-deep)}
+.roadmap{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.roadmap span{
+  font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:8px;
+  background:rgba(255,255,255,.14);color:#e9f1ff;border:1px solid rgba(255,255,255,.22);
+}
+
+/* Stepper & pipeline */
+.stepper{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;flex-shrink:0}
+@media (max-width:960px){.stepper{grid-template-columns:repeat(2,1fr)}}
+.step-box{
+  background:#fff;border:1px solid var(--line);border-radius:12px;
+  padding:8px 10px;position:relative;display:flex;align-items:center;gap:8px;
+}
+.step-box .sn{
+  width:24px;height:24px;border-radius:7px;background:var(--navy);color:#fff;
+  font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.step-box.hi{border-color:var(--gold);background:var(--gold-soft)}
+.step-box.hi .sn{background:var(--gold);color:var(--navy-deep)}
+.step-box .st{font-size:12px;font-weight:700;color:var(--navy);line-height:1.2}
+.step-box .sd{font-size:10.5px;color:var(--muted)}
+
+/* Tables */
+table{width:100%;border-collapse:collapse;font-size:clamp(11.5px,.9vw,13.2px);font-variant-numeric:tabular-nums}
+th,td{padding:7px 8px;text-align:center;border-bottom:1px solid var(--line)}
+th{background:var(--navy);color:#fff;font-weight:700;font-size:11.5px;letter-spacing:.02em}
+th:first-child{border-radius:10px 0 0 0;text-align:left;padding-left:11px}
+th:last-child{border-radius:0 10px 0 0}
+td:first-child{text-align:left;padding-left:11px;font-weight:600}
+tr.win td{background:var(--teal-soft);font-weight:700;color:var(--navy)}
+tr.warn td{background:var(--rose-soft)}
+tr.sub td{background:#f8fafd}
+
+/* Figure box with tabs + click to zoom */
+.fig-card{
+  background:#fff;border:1px solid var(--line);border-radius:16px;
+  padding:12px;box-shadow:var(--shadow);
+  display:flex;flex-direction:column;min-height:0;flex:1;
+}
+.fig-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:9px;align-items:center;justify-content:space-between}
+.tab-group{display:flex;gap:6px;flex-wrap:wrap}
+.tab-btn{
+  border:1px solid var(--line);background:#f5f7fb;color:var(--navy);
+  font:inherit;font-size:12px;font-weight:700;padding:5px 11px;border-radius:9px;
+  cursor:pointer;transition:all .16s ease;
+}
+.tab-btn:hover{border-color:var(--blue);background:var(--blue-soft)}
+.tab-btn.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+.fig-stage{
+  position:relative;flex:1;min-height:190px;
+  background:#fbfcff;border:1px solid #e9eef6;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;padding:8px;
+  cursor:zoom-in;overflow:hidden;
+}
+.fig-stage img{max-width:100%;max-height:100%;object-fit:contain;transition:transform .25s ease}
+.fig-stage:hover img{transform:scale(1.02)}
+.zoom-pill{
+  position:absolute;right:10px;bottom:10px;
+  background:rgba(0,40,85,.82);color:#fff;font-size:11px;font-weight:700;
+  padding:4px 9px;border-radius:8px;pointer-events:none;
+}
+.fig-caption{font-size:11.8px;color:var(--muted);margin-top:8px;line-height:1.35}
+
+/* Feature importance bars */
+.fi-row{display:grid;grid-template-columns:138px 1fr 48px;align-items:center;gap:8px;margin-bottom:6px;font-size:12.5px}
+.fi-row:last-child{margin-bottom:0}
+.fi-bar{height:10px;background:#e8eef7;border-radius:999px;overflow:hidden}
+.fi-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--blue),var(--teal))}
+.fi-fill.gold{background:linear-gradient(90deg,#d98a00,var(--gold))}
+.fi-fill.muted{background:#94a3b8}
+
+/* Pure CSS/HTML Math expressions (100% offline safe!) */
+.math-eq{
+  font-family:"JetBrains Mono",ui-monospace,Consolas,monospace;
+  font-size:clamp(14px,1.25vw,18.5px);font-weight:700;color:var(--navy);
+  background:#fff;border:1.5px solid #cfe0f5;border-radius:12px;
+  padding:9px 13px;text-align:center;letter-spacing:-.01em;
+}
+.math-eq.teal{background:var(--teal-soft);border-color:#98ddd4;color:#0b5d56}
+.math-eq.gold{background:var(--gold-soft);border-color:#f0ce73;color:#734a00}
+.frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 4px;font-size:.86em;line-height:1.15}
+.frac .top{border-bottom:1.5px solid currentColor;padding:0 4px 2px}
+.frac .bot{padding:2px 4px 0}
+
+/* Interactive math controls & canvas */
+.canvas-card{
+  background:#fff;border:1px solid var(--line);border-radius:16px;
+  padding:12px 14px;box-shadow:var(--shadow);display:flex;flex-direction:column;min-height:0;
+}
+.canvas-wrap{position:relative;flex:1;min-height:240px;width:100%}
+canvas{display:block;width:100%;height:100%}
+.slider-row{
+  display:grid;grid-template-columns:86px 1fr 72px;align-items:center;gap:10px;
+  font-size:12.5px;font-weight:700;color:var(--navy);
+}
+input[type=range]{width:100%;accent-color:var(--blue);cursor:pointer}
+.live-out{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-top:6px}
+.live-num{font-size:clamp(22px,2.1vw,30px);font-weight:900;color:var(--navy);font-variant-numeric:tabular-nums}
+.status-msg{font-size:11.8px;font-weight:700}
+.status-msg.ok{color:var(--teal)}
+.status-msg.warn{color:var(--rose)}
+
+/* Bottom Navigation Bar (Ultra-clean) */
+.nav{
+  position:fixed;left:0;right:0;bottom:0;height:56px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 clamp(16px,3.2vw,44px);
+  background:rgba(255,255,255,.94);backdrop-filter:blur(10px);
+  border-top:1px solid var(--line);z-index:60;
+}
+.nav-title{
+  font-size:13px;font-weight:700;color:var(--navy);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:34vw;
+}
+.nav-dots{display:flex;gap:5px;align-items:center}
+.nav-dots button{
+  width:26px;height:26px;border-radius:8px;border:1px solid var(--line);
+  background:#f5f7fb;color:var(--muted);font:inherit;font-size:11.5px;font-weight:700;
+  cursor:pointer;transition:all .16s ease;
+}
+.btn-map3d{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 12px;border-radius:9px;
+  background:linear-gradient(135deg,var(--navy) 0%,var(--blue) 100%);
+  border:1.5px solid var(--gold);color:#fff;text-decoration:none;
+  font-size:12px;font-weight:800;letter-spacing:.01em;
+  box-shadow:0 4px 14px rgba(0,40,85,.22);
+  transition:transform .16s ease,box-shadow .16s ease;
+  white-space:nowrap;
+}
+.btn-map3d:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(0,75,147,.32)}
+.nav-dots button:hover{border-color:var(--blue);color:var(--blue)}
+.nav-dots button.on{background:var(--navy);color:#fff;border-color:var(--navy);transform:translateY(-1px)}
+.nav-dots button.math-dot{border-color:#f0ce73;background:var(--gold-soft);color:#8a5a00}
+.nav-dots button.math-dot.on{background:var(--gold);color:var(--navy-deep);border-color:var(--gold)}
+@media (max-width:860px){.nav-dots{display:none}}
+.nav-ctrls{display:flex;align-items:center;gap:7px}
+.nav-btn{
+  border:1px solid var(--line);background:#fff;color:var(--navy);
+  font:inherit;font-size:13px;font-weight:700;
+  padding:6px 12px;border-radius:10px;cursor:pointer;transition:all .15s ease;
+}
+.nav-btn:hover{border-color:var(--blue);background:var(--blue-soft)}
+.nav-btn.primary{background:var(--navy);color:#fff;border-color:var(--navy)}
+.nav-btn.primary:hover{background:var(--blue)}
+.counter{font-size:13px;font-weight:800;color:var(--navy);min-width:52px;text-align:center;font-variant-numeric:tabular-nums}
+
+/* Lightbox Zoom Modal */
+.modal{
+  position:fixed;inset:0;z-index:100;display:none;
+  background:rgba(0,22,48,.82);backdrop-filter:blur(6px);
+  align-items:center;justify-content:center;padding:24px;
+}
+.modal.open{display:flex}
+.modal-box{
+  background:#fff;border-radius:20px;max-width:1040px;width:100%;max-height:92vh;
+  padding:18px 20px;box-shadow:0 25px 60px rgba(0,0,0,.35);
+  display:flex;flex-direction:column;gap:12px;
+}
+.modal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding-bottom:10px}
+.modal-body{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;background:#f8fafd;border-radius:12px;padding:10px;overflow:hidden}
+.modal-body img{max-width:100%;max-height:68vh;object-fit:contain}
+.modal-close{
+  border:none;background:var(--rose-soft);color:var(--rose);
+  width:34px;height:34px;border-radius:10px;font-size:18px;font-weight:800;cursor:pointer;
+}
+
+/* Print to PDF (10 crisp landscape pages) */
+@media print{
+  @page{size:landscape;margin:8mm}
+  html,body{height:auto;overflow:visible;background:#fff}
+  .top-accent,.progress,.nav,.modal,.zoom-pill{display:none!important}
+  .brand-corner{position:fixed;top:6mm;right:8mm;box-shadow:none}
+  .deck{height:auto;width:auto}
+  .slide{
+    position:relative!important;inset:auto!important;
+    opacity:1!important;pointer-events:auto!important;transform:none!important;
+    height:190mm;page-break-after:always;break-after:page;overflow:hidden;
+    padding:12mm 14mm 10mm;
+  }
+  .slide:last-child{page-break-after:auto;break-after:auto}
+}
+</style>
+</head>
+<body>
+
+<div class="top-accent"></div>
+<div class="progress" id="progress"></div>
+
+<!-- Discreet official UNIMINUTO logo (100% local offline SVG) -->
+<div class="brand-corner on-cover" id="brandCorner" title="Corporación Universitaria Minuto de Dios · UNIMINUTO">
+  <img src="img/logo_uniminuto.svg" alt="UNIMINUTO">
+</div>
+
+<div class="deck" id="deck">
+
+<!-- ======================================================================
+     DIAPOSITIVA 1 · PORTADA
+     ====================================================================== -->
+<section class="slide cover active" data-title="1. Portada Institucional">
+  <div class="cover-grid">
+    <div>
+      <div class="kicker">Proyecto Integrador · Minería de Datos × Métodos Numéricos</div>
+      <h1>Predicción de Brotes de <span style="color:var(--blue)">Dengue</span> y Riesgo de <span style="color:var(--teal)">Desabastecimiento</span> de Medicamentos</h1>
+      <p style="margin-top:14px;max-width:650px;font-size:clamp(14px,1.15vw,16.5px);color:var(--muted)">
+        Sistema analítico reproducible bajo metodología <strong>CRISP-DM</strong> que integra vigilancia epidemiológica (<strong>SIVIGILA</strong>), climatología (<strong>IDEAM / NASA POWER</strong>) y demanda farmacéutica (<strong>SISMED</strong>) en Colombia, complementado con validación cuantitativa mediante <strong>Métodos Numéricos</strong> en el departamento del Tolima.
+      </p>
+
+      <div class="author-strip">
+        <div class="author-chip">
+          <div class="avatar">OP</div>
+          <div>
+            <div style="font-size:11px;color:var(--muted);font-weight:700">EXPOSITOR · AUTOR</div>
+            <div style="font-size:13.5px;font-weight:800;color:var(--navy)">Oscar Mauricio Páez Cárdenas</div>
+          </div>
+        </div>
+        <div class="author-chip">
+          <div class="avatar gold">MG</div>
+          <div>
+            <div style="font-size:11px;color:var(--muted);font-weight:700">EXPOSITOR · AUTOR</div>
+            <div style="font-size:13.5px;font-weight:800;color:var(--navy)">Michael Steven Gutierrez Soto</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:14px;display:flex;flex-wrap:wrap;gap:8px">
+        <span class="pill navy">Ingeniería de Sistemas · 8.° Semestre</span>
+        <span class="pill gold">UNIMINUTO · Ibagué, Tolima</span>
+        <span class="pill teal">Pipeline CRISP-DM + Horizonte 2027</span>
+      </div>
+    </div>
+
+    <div class="card navy" style="padding:clamp(16px,2vw,24px);box-shadow:var(--shadow-lg)">
+      <div style="font-size:11.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--gold-bright);margin-bottom:12px">
+        Síntesis Ejecutiva del Proyecto
+      </div>
+      <div class="kpi-row k4" style="gap:10px">
+        <div class="kpi" style="background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.16)">
+          <div class="lbl" style="color:#c7dbf7">Dataset Unificado</div>
+          <div class="val" style="color:#fff">59,564</div>
+          <div class="sub" style="color:#cfe1fb">Registros · 0 nulos</div>
+        </div>
+        <div class="kpi" style="background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.16)">
+          <div class="lbl" style="color:#c7dbf7">Árbol Ganador</div>
+          <div class="val" style="color:var(--gold-bright)">71.65 %</div>
+          <div class="sub" style="color:#cfe1fb">0 errores Alto → Bajo</div>
+        </div>
+        <div class="kpi" style="background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.16)">
+          <div class="lbl" style="color:#c7dbf7">Regresión Tolima</div>
+          <div class="val" style="color:#5eead4">90.05 %</div>
+          <div class="sub" style="color:#cfe1fb">R² · Error jul: 2.42 %</div>
+        </div>
+        <div class="kpi" style="background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.16)">
+          <div class="lbl" style="color:#c7dbf7">Lagrange P₂</div>
+          <div class="val" style="color:#fde68a">5.11 %</div>
+          <div class="sub" style="color:#cfe1fb">Error imputación mayo</div>
+        </div>
+      </div>
+
+      <div style="margin-top:16px;padding-top:12px;border-top:1px solid rgba(255,255,255,.16)">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#c7dbf7">Recorrido de la Sustentación (10 Diapositivas)</div>
+        <div class="roadmap">
+          <span>2. Contexto</span>
+          <span>3. Objetivo</span>
+          <span>4. CRISP-DM &amp; EDA</span>
+          <span>5–6. Predictivos</span>
+          <span>7. Territorio</span>
+          <span>8. Conclusiones</span>
+          <span style="border-color:var(--gold-bright);color:var(--gold-bright)">9–10. Matemáticas</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================================
+     DIAPOSITIVA 2 · CONTEXTO Y PROBLEMÁTICA
+     ====================================================================== -->
+<section class="slide" data-title="2. Contexto y Problemática">
+  <div class="slide-head">
+    <div class="kicker">01 · Contexto y Problemática</div>
+    <h2>Desconexión entre vigilancia epidemiológica, clima y suministro farmacéutico</h2>
+  </div>
+
+  <div class="body-fill">
+    <div class="grid2 w-left">
+      <div class="stack">
+        <div class="card accent-l">
+          <h3>El desafío sanitario en Colombia</h3>
+          <p>El <strong>Dengue</strong> es la <strong>4.ª patología</strong> con mayor volumen acumulado del país (<strong>&gt;241,000 casos</strong> en el periodo histórico 2017–2021). Su vector (<em>Aedes aegypti</em>) responde a ciclos climáticos regionales, generando brotes abruptos que colapsan el stock hospitalario.</p>
+        </div>
+
+        <div class="card accent-rose">
+          <h3>El problema operativo actual</h3>
+          <ul class="clean rose">
+            <li><strong>Silos de información:</strong> Los reportes clínicos, meteorológicos y de inventarios se analizan por separado.</li>
+            <li><strong>Planeación reactiva:</strong> Las compras se activan cuando el brote ya saturó urgencias, causando desabastecimiento y sobrecostos.</li>
+            <li><strong>Sesgo del promedio:</strong> Distribuir medicamentos solo por tamaño poblacional desprotege departamentos periféricos con alta presión endémica.</li>
+          </ul>
+        </div>
+
+        <div class="card gold">
+          <div style="font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#8a5a00;margin-bottom:4px">Pregunta Central de Negocio</div>
+          <p style="font-weight:600;color:var(--navy)">¿Cómo inciden la temperatura, la lluvia y la humedad en los brotes de Dengue en cada departamento de Colombia, y cómo anticipar su impacto sobre la demanda de medicamentos para prevenir quiebres de inventario?</p>
+        </div>
+      </div>
+
+      <div class="stack">
+        <div class="card" style="flex:1;display:flex;flex-direction:column;justify-content:space-between">
+          <div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+              <h3 style="margin:0">Integración de 3 Fuentes Públicas Oficiales</h3>
+              <span class="pill teal">Granularidad: Depto · Año · Mes</span>
+            </div>
+
+            <div class="stack" style="gap:9px">
+              <div class="card blue" style="padding:11px 14px">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <strong style="color:var(--navy);font-size:14px">1. SIVIGILA · Salud Pública</strong>
+                  <span class="mono" style="font-size:11.5px;color:var(--blue);font-weight:700">2017 – 2021</span>
+                </div>
+                <p style="font-size:12.5px;margin-top:3px">Casos semanales de eventos de interés en salud pública convertidos a mes calendario exacto bajo estándar ISO (<code>%G-W%V-%u</code>).</p>
+              </div>
+
+              <div class="card teal" style="padding:11px 14px">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <strong style="color:var(--navy);font-size:14px">2. IDEAM &amp; NASA POWER · Clima</strong>
+                  <span class="mono" style="font-size:11.5px;color:var(--teal);font-weight:700">34 Territorios</span>
+                </div>
+                <p style="font-size:12.5px;margin-top:3px">Perfiles climáticos a resolución departamental: <strong>Temperatura promedio (°C)</strong>, <strong>Lluvias acumuladas (mm)</strong> y <strong>Humedad relativa (%)</strong>.</p>
+              </div>
+
+              <div class="card gold" style="padding:11px 14px">
+                <div style="display:flex;justify-content:space-between;align-items:center">
+                  <strong style="color:var(--navy);font-size:14px">3. SISMED · Mercado Farmacéutico</strong>
+                  <span class="mono" style="font-size:11.5px;color:#946200;font-weight:700">Demanda Mensual</span>
+                </div>
+                <p style="font-size:12.5px;margin-top:3px">Comercialización de medicamentos esenciales asociados al manejo sintomático del Dengue (analgésicos, antipiréticos, sales de rehidratación).</p>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+            <span class="mono" style="font-size:12px;font-weight:700;color:var(--navy)">Consolidado: 59,564 filas × 10 variables</span>
+            <span class="pill navy">Subconjunto Dengue: N = 1,522</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================================
+     DIAPOSITIVA 3 · OBJETIVO GENERAL Y ARQUITECTURA
+     ====================================================================== -->
+<section class="slide" data-title="3. Objetivo General y Arquitectura">
+  <div class="slide-head">
+    <div class="kicker">02 · Objetivo General y Arquitectura</div>
+    <h2>Propósito del proyecto y arquitectura analítica reproducible</h2>
+  </div>
+
+  <div class="body-fill">
+    <div class="card navy" style="padding:clamp(14px,1.7vw,22px)">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+        <span class="pill gold" style="background:var(--gold);color:var(--navy-deep);border:none">OBJETIVO GENERAL</span>
+        <span style="font-size:12px;color:#cfe1fb;font-weight:600">Enfoque preventivo en salud pública y logística hospitalaria</span>
+      </div>
+      <p style="font-size:clamp(14px,1.2vw,17px);line-height:1.48;color:#fff;font-weight:500">
+        Diseñar e implementar un <strong>sistema analítico predictivo bajo la metodología CRISP-DM</strong> que integre datos epidemiológicos, climáticos y farmacéuticos de Colombia para <strong>pronosticar brotes de Dengue, estimar la demanda inducida de medicamentos y emitir alertas tempranas de desabastecimiento</strong>, respaldando sus fundamentos cuantitativos mediante <strong>Métodos Numéricos</strong>.
+      </p>
+    </div>
+
+    <div class="grid4" style="flex:1">
+      <div class="card accent-l" style="display:flex;flex-direction:column;justify-content:space-between">
+        <div>
+          <span class="pill">Objetivo 1 · Datos</span>
+          <h3 style="margin-top:9px">Integración y Calidad</h3>
+          <p>Consolidar SIVIGILA, IDEAM/NASA y SISMED a nivel departamental-mensual sin valores nulos ni sesgos temporales.</p>
+        </div>
+        <div class="mono" style="font-size:11px;color:var(--muted);margin-top:8px">src/01_ingesta → 02_preparacion</div>
+      </div>
+
+      <div class="card accent-teal" style="display:flex;flex-direction:column;justify-content:space-between">
+        <div>
+          <span class="pill teal">Objetivo 2 · EDA</span>
+          <h3 style="margin-top:9px">Diagnóstico Estadístico</h3>
+          <p>Caracterizar asimetría, cuantificar brotes atípicos (IQR) y diseñar un escalamiento híbrido que preserve los picos reales.</p>
+        </div>
+        <div class="mono" style="font-size:11px;color:var(--muted);margin-top:8px">src/03_eda → 04_transformacion</div>
+      </div>
+
+      <div class="card accent-gold" style="display:flex;flex-direction:column;justify-content:space-between">
+        <div>
+          <span class="pill gold">Objetivo 3 · ML</span>
+          <h3 style="margin-top:9px">Modelado Predictivo</h3>
+          <p>Evaluar clasificadores supervisados (Torneo) y regresión con Random Forest para proyectar demanda y riesgo hasta 2027.</p>
+        </div>
+        <div class="mono" style="font-size:11px;color:var(--muted);margin-top:8px">src/05_modelado · 07_modelos</div>
+      </div>
+
+      <div class="card accent-rose" style="display:flex;flex-direction:column;justify-content:space-between">
+        <div>
+          <span class="pill rose">Objetivo 4 · Cálculo</span>
+          <h3 style="margin-top:9px">Validación Numérica</h3>
+          <p>Aplicar Regresión Lineal por Mínimos Cuadrados e Interpolación de Lagrange sobre muestra real de Tolima 2019.</p>
+        </div>
+        <div class="mono" style="font-size:11px;color:var(--muted);margin-top:8px">matematicas/aplicacion_*.py</div>
+      </div>
+    </div>
+
+    <div class="card" style="padding:11px 16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+        <span style="font-size:12px;font-weight:800;color:var(--navy);text-transform:uppercase;letter-spacing:.06em">Arquitectura Modular (Medallion · Orquestada en <code class="mono" style="color:var(--blue)">main.py</code>)</span>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;font-weight:700">
+          <span class="pill">Bronze: Fuentes Crudas</span>
+          <span style="color:var(--muted)">→</span>
+          <span class="pill teal">Silver: 59,564 reg. ISO</span>
+          <span style="color:var(--muted)">→</span>
+          <span class="pill gold">Gold: Standard + Robust</span>
+          <span style="color:var(--muted)">→</span>
+          <span class="pill navy">Alertas 2027 &amp; Mapas</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================================
+     DIAPOSITIVA 4 · METODOLOGÍA CRISP-DM, EDA Y ESCALAMIENTO
+     ====================================================================== -->
+<section class="slide" data-title="4. Metodología CRISP-DM y EDA">
+  <div class="slide-head">
+    <div class="kicker">03 · Metodología CRISP-DM (Fases 1 a 3)</div>
+    <h2>Análisis Exploratorio (EDA), Outliers Epidémicos y Escalamiento Híbrido</h2>
+  </div>
+
+  <div class="body-fill">
+    <div class="stepper">
+      <div class="step-box"><div class="sn">1</div><div><div class="st">Negocio</div><div class="sd">Pregunta y KPI riesgo</div></div></div>
+      <div class="step-box hi"><div class="sn">2</div><div><div class="st">Datos &amp; EDA</div><div class="sd">Asimetría + IQR + r</div></div></div>
+      <div class="step-box hi"><div class="sn">3</div><div><div class="st">Preparación</div><div class="sd">Escalamiento híbrido</div></div></div>
+      <div class="step-box"><div class="sn">4</div><div><div class="st">Modelado</div><div class="sd">Torneo ML + RF</div></div></div>
+      <div class="step-box"><div class="sn">5</div><div><div class="st">Evaluación</div><div class="sd">Alertas 2027</div></div></div>
+    </div>
+
+    <div class="grid2 w-right" style="flex:1">
+      <div class="stack">
+        <div class="kpi-row">
+          <div class="kpi">
+            <div class="lbl">Media vs Mediana</div>
+            <div class="val" style="font-size:clamp(16px,1.55vw,22px)">158.8 / 50.5</div>
+            <div class="sub">Asimetría +3.89 · Curt. 20.45</div>
+          </div>
+          <div class="kpi">
+            <div class="lbl">Outliers (IQR)</div>
+            <div class="val" style="color:var(--rose)">184</div>
+            <div class="sub">12.1 % (&gt;378 casos)</div>
+          </div>
+          <div class="kpi">
+            <div class="lbl">Casos vs Meds</div>
+            <div class="val" style="color:var(--teal)">r = 0.848</div>
+            <div class="sub">+12.42 u./caso</div>
+          </div>
+        </div>
+
+        <div class="card accent-rose">
+          <h3>Decisión Crítica: NO eliminar los outliers</h3>
+          <p>Los <strong>184 registros atípicos</strong> no son errores de captura: son <strong>brotes epidémicos reales</strong> (hasta 2,752 casos/mes). Eliminarlos destruiría la señal de quiebre de stock que el modelo debe anticipar.</p>
+        </div>
+
+        <div class="card accent-teal" style="flex:1">
+          <h3>Escalamiento Híbrido (<code class="mono" style="font-size:12px">escalamiento.py</code>)</h3>
+          <ul class="clean teal" style="margin-top:4px">
+            <li><strong>RobustScaler (Mediana / IQR):</strong> aplicado a <em>Lluvias</em> y <em>Medicamentos</em> — inmune a picos extremos.</li>
+            <li><strong>StandardScaler (μ / σ):</strong> aplicado a <em>Temperatura</em> y <em>Humedad</em> — distribución casi simétrica.</li>
+            <li><strong>Sin escalar:</strong> <em>Casos Reportados</em> (objetivo) conserva su escala clínica para la regla <code>Casos × 15</code>.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="fig-card">
+        <div class="fig-tabs">
+          <div class="tab-group">
+            <button class="tab-btn active" onclick="swapFig('edaFig',this,'img/fig1_hist_casos_dengue.png','Figura 1 · Histograma de Casos de Dengue','Distribución con asimetría positiva extrema (+3.89): la media (158.8) triplica la mediana (50.5) por los picos epidémicos.')">Histograma</button>
+            <button class="tab-btn" onclick="swapFig('edaFig',this,'img/fig2_box_casos_outliers.png','Figura 2 · Boxplot e Identificación IQR (Tukey)','184 meses-departamento superan el límite superior de 378.4 casos; corresponden a brotes epidémicos reales conservados en el modelo.')">Outliers (IQR)</button>
+            <button class="tab-btn" onclick="swapFig('edaFig',this,'img/fig4_scatter_casos_medicamentos.png','Figura 4 · Relación Casos vs. Medicamentos','Correlación de Pearson r = 0.848: Demanda = 12.42 × Casos + 8,695 unidades basales.')">Casos vs Meds</button>
+          </div>
+          <span class="mono" style="font-size:11px;color:var(--muted)">Evidencia real · img/</span>
+        </div>
+        <div class="fig-stage" onclick="zoomFig('edaFig')">
+          <img id="edaFig" src="img/fig1_hist_casos_dengue.png" data-title="Figura 1 · Histograma de Casos de Dengue" data-desc="Distribución con asimetría positiva extrema (+3.89): la media (158.8) triplica la mediana (50.5) por los picos epidémicos." alt="Gráfica EDA">
+          <span class="zoom-pill">🔍 Clic para ampliar</span>
+        </div>
+        <div class="fig-caption" id="edaFigCap"><strong>Figura 1 · Histograma:</strong> Distribución con asimetría positiva extrema (+3.89): la media (158.8) triplica la mediana (50.5) por los picos epidémicos.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================================
+     DIAPOSITIVA 5 · PROCESO PREDICTIVO I: TORNEO SUPERVISADO
+     ====================================================================== -->
+<section class="slide" data-title="5. Predictivo I: Torneo Supervisado">
+  <div class="slide-head">
+    <div class="kicker">04 · Procesos Predictivos · Clasificación Supervisada</div>
+    <h2>Torneo de Clasificadores: Selección del Modelo de Riesgo Logístico</h2>
+  </div>
+
+  <div class="body-fill">
+    <div class="grid2 w-left">
+      <div class="stack">
+        <div class="card" style="padding:10px 12px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:6px">
+            <h3 style="margin:0">Comparativa Oficial (Misma Partición · Sin Fuga de Datos)</h3>
+            <span class="pill">N = 1,522 · 75/25 estratificado</span>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Modelo Evaluado</th>
+                <th>Acc Test</th>
+                <th>Brecha</th>
+                <th>F1 Macro</th>
+                <th>Alto→Bajo</th>
+                <th>t_pred</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="win">
+                <td>🏆 Árbol Decisión (prof=8)</td>
+                <td>71.65 %</td>
+                <td>0.015</td>
+                <td>0.596</td>
+                <td>0 / 45</td>
+                <td>0.0012s</td>
+              </tr>
+              <tr class="sub">
+                <td>Árbol Estándar (prof=4)</td>
+                <td>66.93 %</td>
+                <td>-0.008</td>
+                <td>0.516</td>
+                <td>0 / 45</td>
+                <td>0.0009s</td>
+              </tr>
+              <tr>
+                <td>KNN (Standard, k=11)</td>
+                <td>68.24 %</td>
+                <td>0.056</td>
+                <td>0.613</td>
+                <td>2 / 45</td>
+                <td>0.0169s</td>
+              </tr>
+              <tr class="warn">
+                <td>Naive Bayes (GaussianNB)</td>
+                <td>45.93 %</td>
+                <td>0.053</td>
+                <td>0.459</td>
+                <td>3 / 45</td>
+                <td>0.0011s</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card teal">
+          <h3>¿Por qué gana el Árbol de Decisión (<code class="mono" style="font-size:12px">DecisionTreeClassifier</code>)?</h3>
+          <ul class="clean teal" style="margin-top:4px">
+            <li><strong>Máxima exactitud sin sobreajuste:</strong> <code>71.65 %</code> en test (brecha sana de <code>0.015</code>) y <strong>cero errores catastróficos</strong> de confundir un Riesgo Alto real con Riesgo Bajo.</li>
+            <li><strong>Trazabilidad en salud pública:</strong> Entrega reglas auditables por umbrales exactos para justificar compras de emergencia ante secretarías de salud.</li>
+            <li><strong>Inmune a escalas y outliers:</strong> Sus cortes por umbrales no se distorsionan por la asimetría epidémica ni por las 34 columnas departamentales.</li>
+          </ul>
+        </div>
+
+        <div class="card accent-rose" style="padding:10px 14px">
+          <p style="font-size:12.5px"><strong>Descarte técnico:</strong> <em>Naive Bayes</em> viola independencia (<code>Lluvia–Humedad r=0.712</code>) y emite <code>93.2 %</code> de sus errores con confianza ≥ 90 %. <em>KNN</em> es ~15× más lento y opera como caja negra en 40 dimensiones.</p>
+        </div>
+      </div>
+
+      <div class="fig-card">
+        <div class="fig-tabs">
+          <div class="tab-group">
+            <button class="tab-btn active" onclick="swapFig('torneoFig',this,'img/modelos/supervisado/torneo_comparacion_metricas.png','Torneo Supervisado · Comparación de Métricas','El Árbol de Decisión lidera en exactitud de prueba y mantiene la menor brecha Train–Test frente a KNN y Naive Bayes.')">Métricas</button>
+            <button class="tab-btn" onclick="swapFig('torneoFig',this,'img/modelos/supervisado/torneo_matrices_confusion.png','Torneo Supervisado · Matrices de Confusión','El Árbol ganador comete 0 errores críticos de clasificar un Riesgo Alto real como Riesgo Bajo (vs. 2 en KNN y 3 en Naive Bayes).')">Matrices Confusión</button>
+            <button class="tab-btn" onclick="swapFig('torneoFig',this,'img/modelos/supervisado/arbol_decision_dengue.png','Árbol de Decisión Entrenado (max_depth=4)','Reglas explícitas y auditables para decisiones clínicas y logísticas en comités de salud pública.')">Árbol Visual</button>
+          </div>
+          <span class="mono" style="font-size:11px;color:var(--muted)">src/07_modelos/</span>
+        </div>
+        <div class="fig-stage" onclick="zoomFig('torneoFig')">
+          <img id="torneoFig" src="img/modelos/supervisado/torneo_comparacion_metricas.png" data-title="Torneo Supervisado · Comparación de Métricas" data-desc="El Árbol de Decisión lidera en exactitud de prueba y mantiene la menor brecha Train–Test frente a KNN y Naive Bayes." alt="Gráfica Torneo">
+          <span class="zoom-pill">🔍 Clic para ampliar</span>
+        </div>
+        <div class="fig-caption" id="torneoFigCap"><strong>Torneo Supervisado:</strong> El Árbol de Decisión lidera en exactitud de prueba y mantiene la menor brecha Train–Test frente a KNN y Naive Bayes.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================================
+     DIAPOSITIVA 6 · PROCESO PREDICTIVO II: RANDOM FOREST Y 2027
+     ====================================================================== -->
+<section class="slide" data-title="6. Predictivo II: Random Forest y 2027">
+  <div class="slide-head">
+    <div class="kicker">05 · Procesos Predictivos · Regresión y Proyección Prospectiva</div>
+    <h2>Ensamble Random Forest, Demanda Hospitalaria y Escenario 2027</h2>
+  </div>
+
+  <div class="body-fill">
+    <div class="grid2 w-right">
+      <div class="stack">
+        <div class="card accent-l">
+          <h3>De 1 árbol a 100 árboles (<code class="mono" style="font-size:12px">RandomForestRegressor</code>)</h3>
+          <p>Mientras un árbol individual brinda explicabilidad, el <strong>ensamble de 100 árboles (Bagging)</strong> reduce la varianza y predice numéricamente los casos futuros de Dengue para los 12 meses de 2027 bajo estacionalidad bimodal colombiana.</p>
+        </div>
+
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <h3 style="margin:0">Importancia de Variables (<code class="mono" style="font-size:11.5px">feature_importances_</code>)</h3>
+            <span class="pill teal">Clima = 78.2 %</span>
+          </div>
+          <div class="fi-row"><span><strong>Humedad Ambiente</strong></span><div class="fi-bar"><div class="fi-fill" style="width:92%"></div></div><span class="mono" style="font-weight:800;text-align:right">27.5 %</span></div>
+          <div class="fi-row"><span><strong>Temperatura Prom.</strong></span><div class="fi-bar"><div class="fi-fill" style="width:88%"></div></div><span class="mono" style="font-weight:800;text-align:right">26.4 %</span></div>
+          <div class="fi-row"><span><strong>Lluvias Acumuladas</strong></span><div class="fi-bar"><div class="fi-fill gold" style="width:81%"></div></div><span class="mono" style="font-weight:800;text-align:right">24.3 %</span></div>
+          <div class="fi-row"><span class="muted">Año + Mes (temporal)</span><div class="fi-bar"><div class="fi-fill muted" style="width:72%"></div></div><span class="mono muted" style="font-weight:700;text-align:right">21.8 %</span></div>
+        </div>
+
+        <div class="card gold">
+          <h3>Traducción Clínica → Alerta de Inventario</h3>
+          <div class="math-eq gold" style="margin:6px 0;font-size:13.5px">
+            Demanda = Casos × 15 u. &nbsp;|&nbsp; Índice = Demanda / Inventario
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">
+            <span class="pill teal">🟢 Bajo: &lt; 50 %</span>
+            <span class="pill gold">🟡 Medio: 50 – 85 %</span>
+            <span class="pill rose">🔴 Alto: ≥ 85 % (Quiebre)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="fig-card">
+        <div class="fig-tabs">
+          <div class="tab-group">
+            <button class="tab-btn active" onclick="swapFig('rfFig',this,'datos_procesados/pronostico_demanda_2027.png','Proyección Nacional de Demanda 2027','Tendencia mensual unificada de demanda de medicamentos estimada por Random Forest para los 32+ territorios bajo régimen climático bimodal.')">Pronóstico 2027</button>
+            <button class="tab-btn" onclick="swapFig('rfFig',this,'datos_procesados/grafica_riesgo_desabastecimiento.png','Validación Random Forest: Casos Reales vs. Predichos','Dispersión de predicciones coloreada por nivel de alerta de inventario (Bajo, Medio, Alto) sobre la diagonal ideal.')">Validación Riesgo</button>
+          </div>
+          <span class="mono" style="font-size:11px;color:var(--muted)">src/05_modelado/</span>
+        </div>
+        <div class="fig-stage" onclick="zoomFig('rfFig')">
+          <img id="rfFig" src="datos_procesados/pronostico_demanda_2027.png" data-title="Proyección Nacional de Demanda 2027" data-desc="Tendencia mensual unificada de demanda de medicamentos estimada por Random Forest para los 32+ territorios bajo régimen climático bimodal." alt="Pronóstico 2027">
+          <span class="zoom-pill">🔍 Clic para ampliar</span>
+        </div>
+        <div class="fig-caption" id="rfFigCap"><strong>Proyección 2027:</strong> Tendencia mensual unificada de demanda de medicamentos estimada por Random Forest bajo régimen climático bimodal.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================================
+     DIAPOSITIVA 7 · IMPACTO TERRITORIAL Y DECISIONES
+     ====================================================================== -->
+<section class="slide" data-title="7. Impacto Territorial y Decisiones">
+  <div class="slide-head">
+    <div class="kicker">06 · Resultados Territoriales y Gestión del Riesgo</div>
+    <h2>Priorización Departamental y Reglas Accionables de Reabastecimiento</h2>
+  </div>
+
+  <div class="body-fill">
+    <div class="grid2 w-42">
+      <div class="fig-card">
+        <div class="fig-tabs">
+          <div class="tab-group">
+            <span class="pill rose">Tasa Histórica de Riesgo Alto (%)</span>
+          </div>
+          <span class="mono" style="font-size:11px;color:var(--muted)">pd.crosstab(normalize='index')</span>
+        </div>
+        <div class="fig-stage" onclick="zoomFig('terrFig')">
+          <img id="terrFig" src="img/fig7_tasa_riesgo_desabastecimiento.png" data-title="Figura 7 · Tasa de Riesgo de Desabastecimiento por Departamento" data-desc="Cruce de contingencia normalizado: Meta (56.2%) y Chocó (38.3%) lideran la vulnerabilidad por presión epidémica frente a su capacidad instalada." alt="Tasa de riesgo departamental">
+          <span class="zoom-pill">🔍 Clic para ampliar</span>
+        </div>
+        <div class="fig-caption"><strong>Hallazgo clave:</strong> Meta (56.2 %) y Chocó (38.3 %) lideran el riesgo crítico aunque no sean los departamentos más poblados.</div>
+      </div>
+
+      <div class="stack">
+        <div class="card" style="padding:10px 12px">
+          <h3>Top Territorios Prioritarios (Tasa Riesgo Alto)</h3>
+          <table style="margin-top:4px">
+            <thead>
+              <tr><th>Departamento</th><th>Riesgo Alto</th><th>Riesgo Medio</th><th>Diagnóstico Logístico</th></tr>
+            </thead>
+            <tbody>
+              <tr class="warn"><td>Meta</td><td><strong>56.2 %</strong></td><td>39.6 %</td><td style="text-align:left">Zona crítica: &gt;50 % del tiempo bajo presión</td></tr>
+              <tr class="warn"><td>Chocó</td><td><strong>38.3 %</strong></td><td>53.2 %</td><td style="text-align:left">Alta vulnerabilidad · bajo stock instalado</td></tr>
+              <tr><td>Magdalena / Sucre</td><td><strong>31.2 / 29.2 %</strong></td><td>56.2 %</td><td style="text-align:left">Estacionalidad marcada y red periférica</td></tr>
+              <tr class="sub"><td>Tolima (Caso Math)</td><td><strong>20.8 %</strong></td><td>47.9 %</td><td style="text-align:left">Alta endemia (3.° en mediana nacional)</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card accent-teal">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:4px">
+            <h3 style="margin:0">Acciones Estratégicas Recomendadas</h3>
+            <a class="btn-map3d" href="mapa_3d_interactivo/index.html" target="_blank" rel="noopener">🚀 Abrir Mapa 3D en Vivo</a>
+          </div>
+          <ul class="clean teal" style="margin-top:4px">
+            <li><strong>Stock regulador descentralizado:</strong> Pre-posicionar reservas en Orinoquía y Pacífico <strong>45 días antes</strong> del ciclo lluvioso.</li>
+            <li><strong>Trigger logístico automático:</strong> Cuando SIVIGILA supere el umbral IQR (<code>&gt;378 casos/mes</code>), activar compra extraordinaria de <code>12.5 × casos estimados</code>.</li>
+            <li><strong>Sensibilidad sanitaria:</strong> Con <code>class_weight="balanced"</code>, el árbol eleva el Recall de <em>Riesgo Alto</em> hasta <strong>53.3 %</strong> para evitar alertas omitidas.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================================
+     DIAPOSITIVA 8 · CONCLUSIONES GENERALES DEL PROYECTO
+     ====================================================================== -->
+<section class="slide" data-title="8. Conclusiones del Proyecto">
+  <div class="slide-head">
+    <div class="kicker">07 · Conclusiones y Proyección Futura</div>
+    <h2>Conclusiones Generales, Limitaciones Honestas y Evolución</h2>
+  </div>
+
+  <div class="body-fill">
+    <div class="grid2" style="flex:1">
+      <div class="card accent-l" style="display:flex;flex-direction:column;justify-content:space-between">
+        <div>
+          <span class="pill">Conclusión 1 · Ingeniería</span>
+          <h3 style="margin-top:8px">De respuesta reactiva a alerta temprana reproducible</h3>
+          <p>El pipeline modular CRISP-DM integró <strong>5,956,452 registros reales</strong> (SIVIGILA + IDEAM/NASA + SISMED) con cero nulos y resolución espacio-temporal homogénea, permitiendo auditar y re-ejecutar todo el flujo desde <code>main.py</code>.</p>
+        </div>
+      </div>
+
+      <div class="card accent-teal" style="display:flex;flex-direction:column;justify-content:space-between">
+        <div>
+          <span class="pill teal">Conclusión 2 · Evidencia EDA</span>
+          <h3 style="margin-top:8px">El clima explica el 78.2 % y los outliers son la señal</h3>
+          <p>Conservar los <strong>184 brotes atípicos</strong> y aplicar <strong>RobustScaler</strong> impidió suavizar artificialmente las emergencias. Además, se comprobó una asociación lineal fuerte entre casos y demanda (<code>r = 0.848</code> nacional; <code>r = 0.949</code> en Tolima).</p>
+        </div>
+      </div>
+
+      <div class="card accent-gold" style="display:flex;flex-direction:column;justify-content:space-between">
+        <div>
+          <span class="pill gold">Conclusión 3 · Modelado</span>
+          <h3 style="margin-top:8px">Precisión + explicabilidad mediante arquitectura dual</h3>
+          <p>El <strong>Árbol de Decisión</strong> ganó el torneo supervisado (<strong>71.65 %</strong> accuracy y <strong>0 errores Alto→Bajo</strong>) ofreciendo reglas auditables, mientras <strong>Random Forest</strong> estabiliza las proyecciones continuas de demanda hacia <strong>2027</strong>.</p>
+        </div>
+      </div>
+
+      <div class="card accent-rose" style="display:flex;flex-direction:column;justify-content:space-between">
+        <div>
+          <span class="pill rose">Conclusión 4 · Rigor Matemático</span>
+          <h3 style="margin-top:8px">Fundamento verificable con Métodos Numéricos</h3>
+          <p>Los modelos de Machine Learning se validan desde primeros principios matemáticos: a continuación demostramos cómo la <strong>Regresión Lineal</strong> y la <strong>Interpolación de Lagrange</strong> explican y contrastan el caso real de <strong>Tolima 2019</strong>.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================================
+     DIAPOSITIVA 9 · APLICACIÓN MATEMÁTICA I: REGRESIÓN LINEAL (TOLIMA 2019)
+     ====================================================================== -->
+<section class="slide" data-title="9. Matemáticas I: Regresión Lineal">
+  <div class="slide-head">
+    <div class="kicker">08 · Aplicación a Métodos Numéricos (Parte I) · Tolima · Dengue 2019</div>
+    <h2>Regresión Lineal por Mínimos Cuadrados: Casos (x) → Medicamentos (y)</h2>
+  </div>
+
+  <div class="body-fill">
+    <div class="grid2 w-42">
+      <div class="stack">
+        <div class="card" style="padding:11px 14px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+            <h3 style="margin:0">Muestra Real · Semestre 1 (n = 6)</h3>
+            <span class="pill gold">Tolima · Dengue · 2019</span>
+          </div>
+          <p style="font-size:12.5px">De <code>dataset_final_crisp_dm_mejorado.csv</code> se toman Ene–Jun (<code>Σx = 5,451</code>, <code>Σy = 116,972</code>, <code>x̄ = 908.5</code>, <code>ȳ = 19,495.3</code>) y se reserva <strong>julio</strong> para validar fuera de muestra.</p>
+        </div>
+
+        <div class="card teal" style="padding:11px 14px">
+          <div style="font-size:11.5px;font-weight:800;color:#0f766e;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Ecuaciones Normales y Recta Ajustada</div>
+          <div style="font-size:12.5px;color:var(--navy);margin-bottom:6px;text-align:center">
+            a<sub>1</sub> =
+            <span class="frac"><span class="top">nΣx<sub>i</sub>y<sub>i</sub> − Σx<sub>i</sub>Σy<sub>i</sub></span><span class="bot">nΣx<sub>i</sub><sup>2</sup> − (Σx<sub>i</sub>)<sup>2</sup></span></span>
+            = <span class="frac"><span class="top">41,801,712</span><span class="bot">3,332,145</span></span>
+            = <strong>12.5450</strong>
+            &nbsp;&nbsp;|&nbsp;&nbsp;
+            a<sub>0</sub> = ȳ − a<sub>1</sub>x̄ = <strong>8,098.21</strong>
+          </div>
+          <div class="math-eq teal">ŷ = 8,098.21 + 12.5450 · x</div>
+          <p style="font-size:12px;margin-top:6px">Cada <strong>caso adicional de Dengue</strong> aumenta la demanda estimada en <strong>12.55 unidades</strong> sobre un consumo basal de <strong>8,098 u.</strong></p>
+        </div>
+
+        <div class="kpi-row">
+          <div class="kpi">
+            <div class="lbl">Bondad R²</div>
+            <div class="val" style="color:var(--teal)">90.05 %</div>
+            <div class="sub">r = 0.9489</div>
+          </div>
+          <div class="kpi">
+            <div class="lbl">Error Est. S<sub>y/x</sub></div>
+            <div class="val" style="font-size:clamp(17px,1.5vw,22px)">±1,554</div>
+            <div class="sub">unidades/mes</div>
+          </div>
+          <div class="kpi" style="border-color:#98ddd4;background:var(--teal-soft)">
+            <div class="lbl" style="color:#0f766e">Valid. Julio</div>
+            <div class="val" style="color:var(--navy)">2.42 %</div>
+            <div class="sub" style="color:#0f766e">29,011 vs 29,729</div>
+          </div>
+        </div>
+
+        <div class="card" style="padding:10px 14px">
+          <div class="slider-row">
+            <span>Casos (x)</span>
+            <input type="range" id="sRegPred" min="400" max="1950" step="1" value="1667">
+            <span id="vRegPred" class="mono" style="text-align:right">1,667</span>
+          </div>
+          <div class="live-out">
+            <div>
+              <span class="live-num" id="regPredOut">29,011</span>
+              <span style="font-size:12.5px;color:var(--muted);font-weight:700"> unidades estimadas</span>
+            </div>
+            <span id="regPredStatus" class="status-msg warn">⚠ Extrapolación (Jul real: 29,729)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-card">
+        <div class="fig-tabs" style="margin-bottom:6px">
+          <div class="tab-group">
+            <button class="tab-btn active" id="btnRegFull" onclick="setRegMode('full')">Recta + Validación Julio</button>
+            <button class="tab-btn" id="btnRegRes" onclick="setRegMode('res')">Residuos e<sub>i</sub> (Sem. 1)</button>
+          </div>
+          <span class="mono" style="font-size:11px;color:var(--muted)">Gráfico interactivo en vivo</span>
+        </div>
+        <div class="canvas-wrap"><canvas id="cvReg"></canvas></div>
+        <div class="fig-caption">Mueve el deslizador de casos (<em>x</em>) para simular la demanda mensual en Tolima y contrastar contra el dato real de julio (SISMED = 29,729 u.).</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================================
+     DIAPOSITIVA 10 · APLICACIÓN MATEMÁTICA II: LAGRANGE P2 VS P5 + CIERRE
+     ====================================================================== -->
+<section class="slide" data-title="10. Matemáticas II: Lagrange y Cierre">
+  <div class="slide-head">
+    <div class="kicker">09 · Aplicación a Métodos Numéricos (Parte II) · Cierre Integrador</div>
+    <h2>Interpolación de Lagrange (P₂ vs. P₅) y Síntesis Matemática</h2>
+  </div>
+
+  <div class="body-fill">
+    <div class="grid2 w-42">
+      <div class="stack">
+        <div class="card blue" style="padding:11px 14px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+            <h3 style="margin:0">Polinomio Cuadrático P₂(x) · 3 Nodos</h3>
+            <span class="pill">Ene(1, 512) · Mar(3, 821) · Jun(6, 1121)</span>
+          </div>
+          <div class="math-eq" style="margin:6px 0">P₂(x) = −10.9·x² + 198.1·x + 324.8</div>
+          <p style="font-size:12.2px">En <strong>mayo (x = 5)</strong>: <code>L₀ = −0.200</code>, <code>L₁ = +0.667</code>, <code>L₂ = +0.533</code> (<code>ΣLᵢ = 1 ✓</code>) → <strong>P₂(5) = 1,042.8 casos</strong> vs. <strong>1,099 reales</strong> (SIVIGILA) · <strong>Error = 5.11 %</strong>.</p>
+        </div>
+
+        <div class="card rose" style="padding:10px 14px">
+          <h3 style="color:var(--rose)">Advertencia Crítica: Oscilación de Grado Alto (P₅)</h3>
+          <p style="font-size:12.5px">Al forzar un polinomio grado 5 por los 6 meses (incluyendo el pico de abril: 1,340), <strong>P₅(x) oscila violentamente</strong> y al extrapolar a julio dispara <strong>+7,562 casos</strong> (error &gt;350 % frente a 1,667 reales).</p>
+        </div>
+
+        <div class="card" style="padding:9px 12px">
+          <h3>¿Cuándo usar cada método en el proyecto?</h3>
+          <table style="margin-top:4px;font-size:11.8px">
+            <thead>
+              <tr><th>Método Numérico</th><th>Resultado Tolima</th><th>Uso Ideal en Minería</th></tr>
+            </thead>
+            <tbody>
+              <tr class="win">
+                <td>Regresión Lineal</td>
+                <td>R²=90.05 % · Err 2.42 %</td>
+                <td style="text-align:left">Tendencia con ruido y pronóstico de stock</td>
+              </tr>
+              <tr class="sub">
+                <td>Lagrange (P₂)</td>
+                <td>Err mayo = 5.11 %</td>
+                <td style="text-align:left">Imputar localmente un mes faltante puntual</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card" style="padding:9px 14px">
+          <div class="slider-row">
+            <span>Mes (x)</span>
+            <input type="range" id="sLagPred" min="1" max="7" step="0.25" value="5">
+            <span id="vLagPred" class="mono" style="text-align:right">5.00</span>
+          </div>
+          <div class="live-out">
+            <div>
+              <span class="live-num" id="lagPredOut">1,042.8</span>
+              <span style="font-size:12.5px;color:var(--muted);font-weight:700"> casos (P₂)</span>
+            </div>
+            <span id="lagPredStatus" class="status-msg ok">✓ Interpolación (May real: 1,099)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="canvas-card">
+        <div class="fig-tabs" style="margin-bottom:6px">
+          <div class="tab-group">
+            <button class="tab-btn active" id="btnLagP2" onclick="setLagMode('p2')">Solo P₂ (Grado 2)</button>
+            <button class="tab-btn" id="btnLagBoth" onclick="setLagMode('both')">Comparar P₂ vs P₅ (Oscilación)</button>
+          </div>
+          <span class="mono" style="font-size:11px;color:var(--muted)">¡Muchas gracias! · Preguntas</span>
+        </div>
+        <div class="canvas-wrap"><canvas id="cvLag"></canvas></div>
+        <div class="fig-caption">Alterna entre <strong>P₂</strong> y <strong>P₂ vs P₅</strong> para visualizar por qué en series epidemiológicas con ruido se prefieren grados bajos para imputación y regresión/ML para pronóstico.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<!-- Ultra-clean Bottom Navigation Bar -->
+<nav class="nav">
+  <div class="nav-title" id="navTitle">1. Portada Institucional</div>
+  <div class="nav-dots" id="navDots"></div>
+  <div class="nav-ctrls">
+    <a class="btn-map3d" href="mapa_3d_interactivo/index.html" target="_blank" rel="noopener" title="Abrir Centro de Comando GEO-EPIDEMIA 3D en nueva pestaña">🚀 Mapa 3D</a>
+    <button class="nav-btn" onclick="prev()" title="Anterior (←)">◂</button>
+    <span class="counter" id="counter">1 / 10</span>
+    <button class="nav-btn primary" onclick="next()" title="Siguiente (→)">▸</button>
+    <button class="nav-btn" onclick="toggleFS()" title="Pantalla completa (F)">⛶</button>
+    <button class="nav-btn" onclick="window.print()" title="Imprimir / Guardar PDF">PDF</button>
+  </div>
+</nav>
+
+<!-- High-res Image Zoom Modal -->
+<div class="modal" id="imgModal" onclick="if(event.target===this) closeModal()">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div>
+        <div class="mono" style="font-size:11.5px;color:var(--blue);font-weight:700" id="mPath"></div>
+        <h3 id="mTitle" style="margin:2px 0 0;font-size:17px"></h3>
+      </div>
+      <button class="modal-close" onclick="closeModal()" title="Cerrar (Esc)">×</button>
+    </div>
+    <div class="modal-body"><img id="mImg" src="" alt="Vista ampliada"></div>
+    <p id="mDesc" style="font-size:13.5px;color:var(--muted)"></p>
+  </div>
+</div>
+
+<script>
+/* ================= REAL DATA · TOLIMA · DENGUE · 2019 ================= */
+const SAMPLE = [
+  {mes:1, nom:'Ene', casos:512,  meds:16334},
+  {mes:2, nom:'Feb', casos:558,  meds:13017},
+  {mes:3, nom:'Mar', casos:821,  meds:18341},
+  {mes:4, nom:'Abr', casos:1340, meds:24471},
+  {mes:5, nom:'May', casos:1099, meds:21385},
+  {mes:6, nom:'Jun', casos:1121, meds:23424},
+  {mes:7, nom:'Jul', casos:1667, meds:29729}
+];
+const SEM1 = SAMPLE.slice(0, 6);
+const MES7 = SAMPLE[6];
+const RX = SEM1.map(d => d.casos), RY = SEM1.map(d => d.meds);
+
+function fitLine(x, y){
+  const n = x.length; let sx=0, sy=0, sxx=0, sxy=0;
+  for(let i=0;i<n;i++){ sx+=x[i]; sy+=y[i]; sxx+=x[i]*x[i]; sxy+=x[i]*y[i]; }
+  const a1 = (n*sxy - sx*sy)/(n*sxx - sx*sx);
+  const a0 = sy/n - a1*(sx/n);
+  return {a0, a1, xm:sx/n, ym:sy/n};
+}
+const FIT = fitLine(RX, RY);
+
+function lagrangeEval(xs, ys, x){
+  let s = 0;
+  for(let i=0;i<xs.length;i++){
+    let L = 1;
+    for(let j=0;j<xs.length;j++) if(j!==i) L *= (x - xs[j]) / (xs[i] - xs[j]);
+    s += ys[i] * L;
+  }
+  return s;
+}
+const LX = [1, 3, 6], LY = [512, 821, 1121];
+const P2 = x => lagrangeEval(LX, LY, x);
+const P5 = x => lagrangeEval(SEM1.map(d => d.mes), SEM1.map(d => d.casos), x);
+
+const fmt0 = v => Math.round(v).toLocaleString('en-US');
+const fmt1 = v => Number(v).toLocaleString('en-US', {minimumFractionDigits:1, maximumFractionDigits:1});
+
+/* ================= SLIDE NAVIGATION ================= */
+const slides = Array.from(document.querySelectorAll('.slide'));
+let idx = 0;
+
+function buildDots(){
+  const box = document.getElementById('navDots');
+  box.innerHTML = slides.map((s, i) =>
+    `<button class="${i>=8?'math-dot':''}${i===0?' on':''}" onclick="go(${i})" title="${s.dataset.title}">${i+1}</button>`
+  ).join('');
+}
+
+function go(n){
+  if(n < 0 || n >= slides.length) return;
+  idx = n;
+  slides.forEach((s, i) => {
+    s.classList.toggle('active', i === idx);
+    s.classList.toggle('before', i < idx);
+  });
+  document.getElementById('progress').style.width = ((idx + 1) / slides.length * 100) + '%';
+  document.getElementById('counter').textContent = (idx + 1) + ' / ' + slides.length;
+  document.getElementById('navTitle').textContent = slides[idx].dataset.title;
+  document.getElementById('brandCorner').classList.toggle('on-cover', idx === 0);
+  document.querySelectorAll('#navDots button').forEach((b, i) => b.classList.toggle('on', i === idx));
+  requestAnimationFrame(() => {
+    if(idx === 8) drawReg();
+    if(idx === 9) drawLag();
+  });
+}
+function next(){ if(idx < slides.length - 1) go(idx + 1); }
+function prev(){ if(idx > 0) go(idx - 1); }
+
+function toggleFS(){
+  if(!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+  else document.exitFullscreen?.();
+}
+
+document.addEventListener('keydown', e => {
+  if(document.getElementById('imgModal').classList.contains('open')){
+    if(e.key === 'Escape') closeModal();
+    return;
+  }
+  if(e.target.tagName === 'INPUT') return;
+  if(['ArrowRight','PageDown',' '].includes(e.key)){ e.preventDefault(); next(); }
+  else if(['ArrowLeft','PageUp'].includes(e.key)){ e.preventDefault(); prev(); }
+  else if(e.key === 'Home'){ go(0); }
+  else if(e.key === 'End'){ go(slides.length - 1); }
+  else if(e.key.toLowerCase() === 'f'){ toggleFS(); }
+  else if(e.key >= '1' && e.key <= '9'){ go(Number(e.key) - 1); }
+  else if(e.key === '0'){ go(9); }
+});
+
+/* ================= FIGURE TABS & ZOOM MODAL ================= */
+function swapFig(imgId, btn, src, title, desc){
+  const img = document.getElementById(imgId);
+  img.src = src; img.dataset.title = title; img.dataset.desc = desc;
+  const cap = document.getElementById(imgId + 'Cap');
+  if(cap) cap.innerHTML = `<strong>${title}:</strong> ${desc}`;
+  btn.parentElement.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function zoomFig(imgId){
+  const img = document.getElementById(imgId);
+  document.getElementById('mImg').src = img.src;
+  document.getElementById('mPath').textContent = img.getAttribute('src');
+  document.getElementById('mTitle').textContent = img.dataset.title || img.alt;
+  document.getElementById('mDesc').textContent = img.dataset.desc || '';
+  document.getElementById('imgModal').classList.add('open');
+}
+function closeModal(){ document.getElementById('imgModal').classList.remove('open'); }
+
+/* ================= HIGH-DPI CANVAS PLOTTER ================= */
+const COL = {
+  navy:'#002855', blue:'#004B93', gold:'#d98a00', teal:'#0d9488',
+  rose:'#e11d48', grid:'#e9eef6', axis:'#94a3b8', muted:'#64748b'
+};
+
+function setupCanvas(cv, forcePrint){
+  const r = cv.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  const w = (r.width >= 20) ? r.width : (forcePrint ? 620 : 0);
+  const h = (r.height >= 20) ? r.height : (forcePrint ? 360 : 0);
+  if(w < 20 || h < 20) return null;
+  cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+  const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return {ctx, w, h};
+}
+
+function plot(cv, o){
+  const s = setupCanvas(cv, o.forcePrint); if(!s) return;
+  const {ctx, w, h} = s;
+  const m = {l:58, r:20, t:18, b:44};
+  const W = w - m.l - m.r, H = h - m.t - m.b;
+  const sx = x => m.l + (x - o.xmin) / (o.xmax - o.xmin) * W;
+  const sy = y => m.t + H - (y - o.ymin) / (o.ymax - o.ymin) * H;
+
+  ctx.clearRect(0, 0, w, h);
+  ctx.font = '11.5px Inter,system-ui,sans-serif';
+  ctx.lineWidth = 1;
+
+  for(let x = Math.ceil(o.xmin/o.xstep)*o.xstep; x <= o.xmax + 1e-9; x += o.xstep){
+    ctx.strokeStyle = COL.grid; ctx.beginPath(); ctx.moveTo(sx(x), m.t); ctx.lineTo(sx(x), m.t+H); ctx.stroke();
+    ctx.fillStyle = COL.muted; ctx.textAlign = 'center';
+    ctx.fillText(o.xfmt ? o.xfmt(x) : +x.toFixed(1), sx(x), m.t+H+16);
+  }
+  for(let y = Math.ceil(o.ymin/o.ystep)*o.ystep; y <= o.ymax + 1e-9; y += o.ystep){
+    ctx.strokeStyle = COL.grid; ctx.beginPath(); ctx.moveTo(m.l, sy(y)); ctx.lineTo(m.l+W, sy(y)); ctx.stroke();
+    ctx.fillStyle = COL.muted; ctx.textAlign = 'right';
+    ctx.fillText(o.yfmt ? o.yfmt(y) : +y.toFixed(0), m.l-8, sy(y)+4);
+  }
+  ctx.strokeStyle = COL.axis; ctx.lineWidth = 1.4; ctx.strokeRect(m.l, m.t, W, H);
+  ctx.fillStyle = COL.navy; ctx.font = '700 12.5px Inter,system-ui,sans-serif';
+  if(o.xlabel){ ctx.textAlign = 'center'; ctx.fillText(o.xlabel, m.l+W/2, h-7); }
+  if(o.ylabel){
+    ctx.save(); ctx.translate(15, m.t+H/2); ctx.rotate(-Math.PI/2);
+    ctx.textAlign = 'center'; ctx.fillText(o.ylabel, 0, 0); ctx.restore();
+  }
+
+  ctx.save(); ctx.beginPath(); ctx.rect(m.l, m.t, W, H); ctx.clip();
+  if(o.shade){
+    ctx.fillStyle = 'rgba(13,148,136,.07)';
+    ctx.fillRect(sx(o.shade[0]), m.t, sx(o.shade[1]) - sx(o.shade[0]), H);
+  }
+  (o.curves || []).forEach(c => {
+    ctx.strokeStyle = c.color; ctx.lineWidth = c.width || 3; ctx.setLineDash(c.dash || []);
+    ctx.beginPath();
+    const N = 420;
+    for(let i=0;i<=N;i++){
+      const x = o.xmin + (o.xmax - o.xmin)*i/N;
+      let y = c.f(x);
+      y = Math.max(o.ymin - 4*(o.ymax-o.ymin), Math.min(o.ymax + 4*(o.ymax-o.ymin), y));
+      i ? ctx.lineTo(sx(x), sy(y)) : ctx.moveTo(sx(x), sy(y));
+    }
+    ctx.stroke(); ctx.setLineDash([]);
+  });
+  if(o.residuals){
+    ctx.strokeStyle = COL.rose; ctx.lineWidth = 2; ctx.setLineDash([5,4]);
+    o.pts.forEach(([x,y]) => {
+      const yh = FIT.a0 + FIT.a1*x;
+      ctx.beginPath(); ctx.moveTo(sx(x), sy(y)); ctx.lineTo(sx(x), sy(yh)); ctx.stroke();
+    });
+    ctx.setLineDash([]);
+  }
+  (o.extraPts || []).forEach(ep => {
+    ctx.fillStyle = ep.fill || '#fff'; ctx.strokeStyle = ep.color; ctx.lineWidth = 2.2;
+    ctx.beginPath(); ctx.arc(sx(ep.x), sy(ep.y), ep.r || 5.5, 0, 7); ctx.fill(); ctx.stroke();
+    if(ep.label){
+      ctx.font = '700 11px Inter'; ctx.fillStyle = ep.color; ctx.textAlign = ep.left ? 'right' : 'left';
+      ctx.fillText(ep.label, sx(ep.x)+(ep.left?-9:9), sy(ep.y)+(ep.dy ?? -8));
+    }
+  });
+  (o.pts || []).forEach(([x,y], i) => {
+    const col = o.ptColor || COL.blue;
+    ctx.fillStyle = '#fff'; ctx.strokeStyle = col; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.arc(sx(x), sy(y), 6, 0, 7); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = col; ctx.beginPath(); ctx.arc(sx(x), sy(y), 2.8, 0, 7); ctx.fill();
+    if(o.ptLabels){
+      ctx.font = '600 11px Inter'; ctx.fillStyle = COL.navy; ctx.textAlign = 'left';
+      ctx.fillText(o.ptLabels[i], sx(x)+8, sy(y)-7);
+    }
+  });
+  (o.marks || []).forEach(mk => {
+    if(mk.guide){
+      ctx.strokeStyle = mk.color; ctx.setLineDash([4,4]); ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(sx(mk.x), sy(o.ymin)); ctx.lineTo(sx(mk.x), sy(mk.y)); ctx.lineTo(sx(o.xmin), sy(mk.y)); ctx.stroke(); ctx.setLineDash([]);
+    }
+    ctx.fillStyle = mk.color;
+    ctx.beginPath();
+    ctx.moveTo(sx(mk.x), sy(mk.y)-8); ctx.lineTo(sx(mk.x)+8, sy(mk.y));
+    ctx.lineTo(sx(mk.x), sy(mk.y)+8); ctx.lineTo(sx(mk.x)-8, sy(mk.y));
+    ctx.closePath(); ctx.fill();
+    if(mk.label){
+      ctx.font = '800 11.5px Inter'; ctx.fillStyle = mk.color; ctx.textAlign = mk.left ? 'right' : 'left';
+      ctx.fillText(mk.label, sx(mk.x)+(mk.left?-11:11), sy(mk.y)+(mk.below?18:-9));
+    }
+  });
+  ctx.restore();
+
+  if(o.legend){
+    let yy = m.t + 18; ctx.font = '700 12px Inter'; ctx.textAlign = 'left';
+    o.legend.forEach(l => {
+      ctx.fillStyle = l.color; ctx.fillRect(m.l+12, yy-7, 14, 4);
+      ctx.fillStyle = COL.navy; ctx.fillText(l.text, m.l+31, yy-2);
+      yy += 18;
+    });
+  }
+}
+
+/* ================= SLIDE 9: REGRESSION CANVAS ================= */
+let regMode = 'full';
+function setRegMode(m){
+  regMode = m;
+  document.getElementById('btnRegFull').classList.toggle('active', m === 'full');
+  document.getElementById('btnRegRes').classList.toggle('active', m === 'res');
+  drawReg();
+}
+
+function drawReg(forcePrint = false){
+  const x = +document.getElementById('sRegPred').value;
+  const y = FIT.a0 + FIT.a1 * x;
+  document.getElementById('vRegPred').textContent = fmt0(x);
+  document.getElementById('regPredOut').textContent = fmt0(y);
+  const st = document.getElementById('regPredStatus');
+  if(x < 512 || x > 1340){
+    st.textContent = x === 1667 ? '⚠ Extrapolación · Jul real: 29,729 (Err 2.42%)' : '⚠ Extrapolación fuera del rango [512 – 1,340]';
+    st.className = 'status-msg warn';
+  } else {
+    st.textContent = '✓ Dentro del rango muestral (Semestre 1)';
+    st.className = 'status-msg ok';
+  }
+
+  if(regMode === 'res'){
+    plot(document.getElementById('cvReg'), {
+      forcePrint,
+      xmin:400, xmax:1480, ymin:10000, ymax:27500, xstep:200, ystep:4000,
+      xlabel:'Casos reportados de Dengue (x)', ylabel:'Medicamentos vendidos (y)',
+      yfmt:v => (v/1000)+'k',
+      pts:SEM1.map(d => [d.casos, d.meds]),
+      ptLabels:SEM1.map(d => d.nom),
+      curves:[{f:v => FIT.a0 + FIT.a1*v, color:COL.teal, width:3.2}],
+      residuals:true,
+      marks:[{x:FIT.xm, y:FIT.ym, color:COL.gold, label:'Centroide (x̄, ȳ)', left:true}],
+      legend:[
+        {color:COL.teal, text:'ŷ = 8,098.21 + 12.545x (R² = 90.05%)'},
+        {color:COL.rose, text:'Residuos eᵢ = yᵢ − ŷᵢ (Σeᵢ ≈ 0)'}
+      ]
+    });
+  } else {
+    plot(document.getElementById('cvReg'), {
+      forcePrint,
+      xmin:350, xmax:2000, ymin:10000, ymax:34500, xstep:300, ystep:5000,
+      xlabel:'Casos reportados de Dengue (x)', ylabel:'Medicamentos vendidos (y)',
+      yfmt:v => (v/1000)+'k',
+      shade:[512, 1340],
+      pts:SEM1.map(d => [d.casos, d.meds]),
+      ptLabels:SEM1.map(d => d.nom),
+      extraPts:[{x:MES7.casos, y:MES7.meds, color:COL.rose, fill:COL.rose, r:6, label:'Jul real (29,729)', left:true, dy:-10}],
+      curves:[{f:v => FIT.a0 + FIT.a1*v, color:COL.teal, width:3.2}],
+      marks:[{x, y, color:COL.gold, guide:true, label:`ŷ(${fmt0(x)}) = ${fmt0(y)}`, left:x>1300, below:true}],
+      legend:[
+        {color:COL.teal, text:'Recta OLS · ŷ = 8,098 + 12.55x'},
+        {color:COL.rose, text:'Validación real Julio (Err = 2.42%)'}
+      ]
+    });
+  }
+}
+document.getElementById('sRegPred').addEventListener('input', () => drawReg(false));
+
+/* ================= SLIDE 10: LAGRANGE CANVAS ================= */
+let lagMode = 'p2';
+function setLagMode(m){
+  lagMode = m;
+  document.getElementById('btnLagP2').classList.toggle('active', m === 'p2');
+  document.getElementById('btnLagBoth').classList.toggle('active', m === 'both');
+  drawLag();
+}
+
+function drawLag(forcePrint = false){
+  const x = +document.getElementById('sLagPred').value;
+  const y = P2(x);
+  document.getElementById('vLagPred').textContent = x.toFixed(2);
+  document.getElementById('lagPredOut').textContent = fmt1(y);
+  const st = document.getElementById('lagPredStatus');
+  if(x > 6){
+    st.textContent = '⚠ Extrapolación fuera de [1, 6] · Jul real: 1,667';
+    st.className = 'status-msg warn';
+  } else if(Math.abs(x - 5) < 1e-6){
+    st.textContent = '✓ Mayo real SIVIGILA: 1,099 (Err 5.11%)';
+    st.className = 'status-msg ok';
+  } else {
+    st.textContent = '✓ Interpolación dentro de [1, 6]';
+    st.className = 'status-msg ok';
+  }
+
+  const curves = [{f:P2, color:COL.teal, width:3.2}];
+  const legend = [{color:COL.teal, text:'P₂(x) = −10.9x² + 198.1x + 324.8 (3 nodos)'}];
+  let ymin = 200, ymax = 2000, ystep = 400;
+  if(lagMode === 'both'){
+    curves.push({f:P5, color:COL.rose, width:2.6, dash:[7,5]});
+    legend.push({color:COL.rose, text:'P₅(x) grado 5: oscila y dispara +7,562 en julio'});
+    ymin = 0; ymax = 3400; ystep = 500;
+  }
+
+  plot(document.getElementById('cvLag'), {
+    forcePrint,
+    xmin:0.6, xmax:7.4, ymin, ymax, xstep:1, ystep,
+    xlabel:'Mes de 2019 (1 = Ene … 7 = Jul)', ylabel:'Casos de Dengue',
+    xfmt:v => ['','Ene','Feb','Mar','Abr','May','Jun','Jul'][Math.round(v)] || v,
+    shade:[1, 6],
+    pts:LX.map((xi, i) => [xi, LY[i]]),
+    ptLabels:['Ene (512)', 'Mar (821)', 'Jun (1,121)'],
+    extraPts:[
+      {x:2, y:558, color:COL.muted, label:'Feb'},
+      {x:4, y:1340, color:COL.muted, label:'Abr (1,340)'},
+      {x:5, y:1099, color:COL.rose, fill:COL.rose, r:6, label:'May real (1,099)', dy:-12},
+      {x:7, y:1667, color:COL.gold, fill:COL.gold, r:5.5, label:'Jul real (1,667)', left:true}
+    ],
+    curves,
+    marks:[{x, y, color:COL.blue, guide:true, label:`P₂(${x.toFixed(1)}) = ${fmt1(y)}`, left:x>5.2, below:true}],
+    legend
+  });
+}
+document.getElementById('sLagPred').addEventListener('input', () => drawLag(false));
+
+window.addEventListener('beforeprint', () => {
+  drawReg(true);
+  drawLag(true);
+});
+
+window.addEventListener('resize', () => {
+  if(idx === 8) drawReg();
+  if(idx === 9) drawLag();
+});
+
+buildDots();
+go(0);
+</script>
+</body>
+</html>

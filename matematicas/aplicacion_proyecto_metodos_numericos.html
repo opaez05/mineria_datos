@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aplicación de Métodos Numéricos · Dengue Tolima 2019</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --bg:#f5f6fb; --card:#ffffff; --ink:#1b2340; --muted:#5b6482; --line:#e3e6f0;
+  --indigo:#4f46e5; --indigo-soft:#eef0ff; --teal:#0d9488; --teal-soft:#e6f6f4;
+  --amber:#d97706; --amber-soft:#fff5e6; --rose:#e11d48; --rose-soft:#ffeef2;
+  --shadow:0 10px 30px rgba(27,35,64,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow:hidden}
+.deck{position:relative;height:100vh;width:100vw}
+.slide{position:absolute;inset:0;padding:clamp(18px,3vw,44px) clamp(20px,4.8vw,76px) 86px;display:flex;flex-direction:column;
+  opacity:0;pointer-events:none;transform:translateX(40px);transition:opacity .45s ease,transform .45s ease;overflow-y:auto}
+.slide.active{opacity:1;pointer-events:auto;transform:none}
+.slide.before{transform:translateX(-40px)}
+.kicker{font-size:clamp(12px,1vw,14px);font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--indigo);margin-bottom:6px}
+h1{font-size:clamp(30px,4.1vw,58px);line-height:1.06;font-weight:800;letter-spacing:-.02em}
+h2{font-size:clamp(22px,2.4vw,36px);font-weight:800;letter-spacing:-.01em;margin-bottom:clamp(10px,1.2vw,18px)}
+h3{font-size:clamp(15px,1.25vw,19px);font-weight:700;margin-bottom:6px}
+p,li{font-size:clamp(14px,1.15vw,18px);line-height:1.48}
+.muted{color:var(--muted)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:clamp(14px,1.8vw,28px);flex:1;min-height:0}
+.grid2.wide-right{grid-template-columns:.85fr 1.15fr}
+.grid2.wide-left{grid-template-columns:1.15fr .85fr}
+@media (max-width:920px){.grid2,.grid2.wide-right,.grid2.wide-left{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:clamp(12px,1.4vw,22px);box-shadow:var(--shadow)}
+.card.indigo{background:var(--indigo-soft);border-color:#d9dcff}
+.card.teal{background:var(--teal-soft);border-color:#c5ebe6}
+.card.amber{background:var(--amber-soft);border-color:#fde3bd}
+.card.rose{background:var(--rose-soft);border-color:#ffd0db}
+.stack{display:flex;flex-direction:column;gap:clamp(10px,1.1vw,14px)}
+.canvas-wrap{position:relative;width:100%;height:100%;min-height:280px}
+canvas{display:block;width:100%;height:100%}
+.pill{display:inline-block;padding:4px 12px;border-radius:999px;font-size:clamp(12px,1vw,14px);font-weight:600;background:var(--indigo-soft);color:var(--indigo)}
+button,.btn{align-self:flex-start;font:inherit;font-size:clamp(13px,1vw,15px);font-weight:600;border:none;border-radius:12px;padding:9px 15px;cursor:pointer;background:var(--indigo);color:#fff;transition:transform .12s,box-shadow .12s,background .2s}
+button:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(79,70,229,.25)}
+button.ghost{background:#fff;color:var(--indigo);border:1.5px solid #cfd3ff}
+button.teal{background:var(--teal)}
+button.amber{background:var(--amber)}
+button.rose{background:var(--rose)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.frag{opacity:0;transform:translateY(10px);transition:opacity .4s,transform .4s}
+.frag.shown{opacity:1;transform:none}
+td.frag,th.frag{transform:none}
+table{border-collapse:collapse;width:100%;font-size:clamp(12px,1.05vw,16px);font-variant-numeric:tabular-nums}
+th,td{padding:clamp(5px,.55vw,8px) 8px;text-align:center;border-bottom:1px solid var(--line)}
+th{background:var(--indigo);color:#fff;font-weight:600}
+th:first-child{border-radius:10px 0 0 0} th:last-child{border-radius:0 10px 0 0}
+tr.sum td{font-weight:800;background:var(--amber-soft);border-top:2px solid var(--amber)}
+tr.hi td{background:var(--teal-soft);font-weight:700}
+tr.ext td{background:var(--rose-soft);font-weight:600}
+.math-big{font-size:clamp(16px,1.45vw,23px)}
+.slider{display:grid;grid-template-columns:86px 1fr 78px;align-items:center;gap:10px;font-weight:600}
+input[type=range]{width:100%;accent-color:var(--indigo)}
+.big-num{font-size:clamp(24px,2.5vw,40px);font-weight:800;font-variant-numeric:tabular-nums}
+.nav{position:fixed;left:0;right:0;bottom:0;height:62px;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(16px,3vw,40px);
+  background:rgba(245,246,251,.94);backdrop-filter:blur(8px);border-top:1px solid var(--line);z-index:50}
+.nav .title{font-size:14px;color:var(--muted);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:38vw}
+.nav .ctrls{display:flex;gap:8px;align-items:center}
+.nav button{padding:7px 13px}
+.counter{font-variant-numeric:tabular-nums;font-weight:700;min-width:60px;text-align:center}
+.progress{position:fixed;left:0;top:0;height:5px;background:linear-gradient(90deg,var(--indigo),var(--teal));z-index:60;transition:width .35s}
+.dots{display:flex;gap:5px}
+.dots span{width:8px;height:8px;border-radius:50%;background:#cfd3e6;cursor:pointer;transition:all .2s}
+.dots span.on{background:var(--indigo);width:20px;border-radius:6px}
+@media (max-width:820px){.dots{display:none}}
+.hint{font-size:13px;color:var(--muted)}
+.cover{justify-content:center;background:radial-gradient(1200px 600px at 85% 20%,#e0e3ff 0%,transparent 60%),radial-gradient(900px 500px at 0% 100%,#d7f3ef 0%,transparent 60%)}
+.cover .meta{margin-top:24px;display:flex;gap:10px;flex-wrap:wrap}
+.cover canvas{position:absolute;right:4vw;bottom:105px;width:min(42vw,540px);height:min(31vw,360px);opacity:.96}
+@media (max-width:920px){.cover canvas{display:none}}
+.feedback{font-weight:600;min-height:1.4em;font-size:clamp(13px,1.05vw,16px)}
+.feedback.ok{color:var(--teal)} .feedback.bad{color:var(--rose)}
+code,.mono{font-family:"JetBrains Mono",ui-monospace,monospace}
+.cmd{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#1b2340;color:#e8ebff;border-radius:10px;padding:7px 11px;font-family:"JetBrains Mono",monospace;font-size:clamp(11px,.92vw,14px);margin-bottom:7px}
+.cmd button{padding:4px 9px;font-size:12px;background:#3b3fbf}
+#ggb{width:100%;height:100%;min-height:400px;border-radius:14px;overflow:hidden;background:#fff;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.step-badge{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:var(--indigo);color:#fff;font-weight:800;margin-right:8px;font-size:14px}
+.toast{position:fixed;left:50%;bottom:78px;transform:translateX(-50%);background:#1b2340;color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;opacity:0;transition:opacity .3s;z-index:70;pointer-events:none}
+.toast.on{opacity:1}
+ul.clean{list-style:none} ul.clean li{padding-left:24px;position:relative;margin-bottom:7px}
+ul.clean li::before{content:"";position:absolute;left:4px;top:.55em;width:9px;height:9px;border-radius:3px;background:var(--indigo)}
+.bar-row{display:grid;grid-template-columns:34px 1fr 68px;gap:10px;align-items:center;margin-bottom:8px}
+.bar-track{position:relative;height:15px;background:#eef0f7;border-radius:8px;overflow:hidden}
+.bar-zero{position:absolute;left:50%;top:0;bottom:0;width:2px;background:#9aa1bd}
+.bar-fill{position:absolute;top:0;bottom:0;border-radius:6px;transition:all .15s}
+.kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px 12px;text-align:center}
+.kpi .lbl{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.kpi .val{font-size:clamp(20px,2vw,30px);font-weight:800;margin-top:2px;font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="deck" id="deck">
+
+<!-- 1 PORTADA -->
+<section class="slide cover" data-title="Portada">
+  <div class="kicker">Minería de Datos × Métodos Numéricos · Aplicación Real</div>
+  <h1>Regresión Lineal e<br><span style="color:var(--indigo)">Interpolación de Lagrange</span><br>en Dengue · Tolima 2019</h1>
+  <p class="muted" style="margin-top:16px;max-width:620px">Aplicación paso a paso de ambos métodos numéricos sobre una muestra real del proyecto de predicción de brotes epidemiológicos y demanda de medicamentos (SIVIGILA + IDEAM + SISMED).</p>
+  <div class="meta">
+    <span class="pill">UNIMINUTO · Ibagué</span>
+    <span class="pill" style="background:var(--teal-soft);color:var(--teal)">Muestra: Tolima · Dengue · 2019</span>
+    <span class="pill" style="background:var(--amber-soft);color:var(--amber)">n = 6 meses + validación real</span>
+  </div>
+  <p class="hint" style="margin-top:26px">Usa ← → o la barra espaciadora para avanzar · F para pantalla completa</p>
+  <canvas id="cvCover"></canvas>
+</section>
+
+<!-- 2 LA MUESTRA DEL PROYECTO -->
+<section class="slide" data-title="La muestra real del proyecto">
+  <div class="kicker">Selección de datos</div>
+  <h2>De 59,564 registros nacionales a una muestra focalizada</h2>
+  <div class="grid2 wide-left">
+    <div class="stack">
+      <div class="card">
+        <p>De <code>dataset_final_crisp_dm_mejorado.csv</code> se extrajo el <b>Primer Semestre de 2019</b> para <b>TOLIMA · DENGUE</b> (meses 1 a 6), reservando <b>julio (mes 7)</b> para validar la extrapolación.</p>
+      </div>
+      <div class="card" style="padding:10px 14px"><table id="tblSample"></table></div>
+    </div>
+    <div class="stack">
+      <div class="card indigo frag" data-f="1">
+        <h3>1. Regresión Lineal (Mínimos Cuadrados)</h3>
+        <p>Usa los <b>6 meses</b> del semestre para modelar la tendencia ruidosa entre <b>Casos Reportados (\(x\))</b> y <b>Medicamentos Vendidos (\(y\))</b>, y predice julio (\(x=1667\)).</p>
+      </div>
+      <div class="card teal frag" data-f="2">
+        <h3>2. Interpolación de Lagrange (\(P_2\))</h3>
+        <p>Usa <b>3 nodos exactos</b> del semestre —<b>enero, marzo y junio</b>— sobre \((x=\text{mes},\, y=\text{casos})\) para estimar <b>mayo (\(x=5\))</b> y validar contra SIVIGILA real (\(1{,}099\)).</p>
+      </div>
+      <div class="card amber frag" data-f="3">
+        <p><b>Archivo reproducible:</b> <code>matematicas/muestra_tolima_dengue_2019.csv</code> y <code>aplicacion_metodos_numericos.py</code>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 3 PARTE I REGRESION ENUNCIADO -->
+<section class="slide" data-title="Parte I · Regresión: enunciado">
+  <div class="kicker">Parte I · Regresión lineal por mínimos cuadrados</div>
+  <h2>¿Cómo responde la demanda de medicamentos ante un brote?</h2>
+  <div class="grid2 wide-right">
+    <div class="stack">
+      <div class="card">
+        <p>Para cada mes del primer semestre de 2019 en el Tolima tenemos los <b>casos de Dengue</b> (\(x\)) y las <b>unidades vendidas de medicamentos</b> (\(y\)). Los datos tienen ruido logístico y estacional.</p>
+      </div>
+      <div class="card indigo frag" data-f="1">
+        <h3>Objetivos</h3>
+        <ul class="clean">
+          <li>Ajustar la recta \(\hat y = a_0 + a_1 x\) minimizando \(S_r = \sum e_i^2\).</li>
+          <li>Evaluar la bondad del ajuste con \(R^2\), \(r\) y \(S_{y/x}\).</li>
+          <li>Predecir la demanda en <b>julio</b> (\(x = 1{,}667\) casos) y compararla con el valor real (\(29{,}729\)).</li>
+        </ul>
+      </div>
+      <div class="row">
+        <button class="ghost" onclick="regMotiv('pts')">Solo datos</button>
+        <button class="rose" onclick="regMotiv('interp')">Interpolar grado 5</button>
+        <button class="teal" onclick="regMotiv('fit')">Ajustar recta</button>
+      </div>
+      <p class="hint">Compara cómo un polinomio exacto oscila por el ruido, mientras la recta captura la tendencia.</p>
+    </div>
+    <div class="card"><div class="canvas-wrap"><canvas id="cvRegMotiv"></canvas></div></div>
+  </div>
+</section>
+
+<!-- 4 REGRESION PASO 1 TABLA DE SUMAS -->
+<section class="slide" data-title="Regresión · Paso 1: tabla de sumas">
+  <div class="kicker"><span class="step-badge">1</span>Regresión · Paso 1</div>
+  <h2>Construir la tabla de sumas (\(n = 6\))</h2>
+  <div class="grid2 wide-left">
+    <div class="card"><table id="tblRegSums"></table></div>
+    <div class="stack">
+      <div class="card frag" data-f="1"><p><b>Columna \(x_i^2\):</b> cuadrado de los casos reportados de cada mes.</p></div>
+      <div class="card frag" data-f="2"><p><b>Columna \(x_i y_i\):</b> producto casos × medicamentos de cada mes.</p></div>
+      <div class="card amber frag" data-f="3"><p><b>Fila \(\Sigma\):</b> resume toda la muestra en solo 4 totales para las ecuaciones normales.</p></div>
+      <div class="card teal frag" data-f="4">
+        <p><b>Promedios muestrales:</b></p>
+        $$\bar x = \frac{5{,}451}{6} = 908.50 \quad\text{casos}$$
+        $$\bar y = \frac{116{,}972}{6} \approx 19{,}495.33 \quad\text{unidades}$$
+      </div>
+      <button class="ghost" onclick="next()">Siguiente paso ▸</button>
+    </div>
+  </div>
+</section>
+
+<!-- 5 REGRESION PASO 2 Y 3 PENDIENTE E INTERCEPTO -->
+<section class="slide" data-title="Regresión · Pasos 2 y 3: a₁ y a₀">
+  <div class="kicker"><span class="step-badge">2</span>Regresión · Pasos 2 y 3</div>
+  <h2>Calcular pendiente \(a_1\) e intercepto \(a_0\)</h2>
+  <div class="grid2">
+    <div class="stack">
+      <div class="card">
+        <h3>Pendiente \(a_1\)</h3>
+        $$a_1 = \frac{n\sum x_i y_i - \sum x_i \sum y_i}{n\sum x_i^2 - (\sum x_i)^2}$$
+      </div>
+      <div class="card frag" data-f="1">
+        $$a_1 = \frac{6(113{,}236{,}014) - (5{,}451)(116{,}972)}{6(5{,}507{,}591) - (5{,}451)^2}$$
+        $$a_1 = \frac{41{,}801{,}712}{3{,}332{,}145} \approx \mathbf{12.5450}$$
+      </div>
+      <div class="card indigo frag" data-f="2">
+        <h3>Interpretación de \(a_1\)</h3>
+        <p>Cada <b>caso adicional de Dengue</b> en el Tolima incrementa la demanda mensual estimada en <b>12.55 unidades de medicamentos</b>.</p>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="card frag" data-f="3">
+        <h3>Intercepto \(a_0\)</h3>
+        $$a_0 = \bar y - a_1\,\bar x$$
+        $$a_0 = 19{,}495.3333 - (12.544986)(908.50)$$
+      </div>
+      <div class="card teal frag math-big" data-f="4">
+        $$\boxed{a_0 \approx 8{,}098.21\ \text{unidades}}$$
+        $$\boxed{\hat y = 8{,}098.21 + 12.5450\,x}$$
+      </div>
+      <div class="card amber frag" data-f="5">
+        <h3>Interpretación de \(a_0\)</h3>
+        <p>Representa la <b>demanda base</b> de medicamentos en el departamento (consumo basal del sistema incluso con brotes mínimos).</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 6 REGRESION PASO 4 MODELO Y RESIDUOS -->
+<section class="slide" data-title="Regresión · Paso 4: modelo y residuos">
+  <div class="kicker"><span class="step-badge">3</span>Regresión · Paso 4</div>
+  <h2>El modelo ajustado y sus residuos</h2>
+  <div class="grid2 wide-right">
+    <div class="stack">
+      <div class="card teal math-big">$$\hat y = 8{,}098.21 + 12.5450\,x$$</div>
+      <div class="card frag" data-f="1"><p>La recta atraviesa la nube de 6 meses capturando el crecimiento sostenido de la demanda.</p></div>
+      <div class="card frag" data-f="2"><p>Los <b style="color:var(--rose)">residuos \(e_i = y_i - \hat y_i\)</b> se compensan (\(\sum e_i \approx 0\)): febrero quedó por debajo (\(-2{,}081\)) y enero por encima (\(+1{,}813\)).</p></div>
+      <div class="card amber frag" data-f="3"><p>El centroide \((\bar x, \bar y) = (908.5,\, 19{,}495.3)\) cae <b>exactamente</b> sobre la recta.</p></div>
+      <button class="ghost" onclick="next()">Siguiente paso ▸</button>
+    </div>
+    <div class="card"><div class="canvas-wrap"><canvas id="cvRegModel"></canvas></div></div>
+  </div>
+</section>
+
+<!-- 7 REGRESION PASO 5 CALIDAD DEL AJUSTE -->
+<section class="slide" data-title="Regresión · Paso 5: calidad del ajuste">
+  <div class="kicker"><span class="step-badge">4</span>Regresión · Paso 5</div>
+  <h2>¿Qué tan bueno es el ajuste? (\(R^2\), \(r\), \(S_{y/x}\))</h2>
+  <div class="grid2 wide-left">
+    <div class="card"><table id="tblRegRes"></table></div>
+    <div class="stack">
+      <div class="card frag" data-f="2">
+        $$S_t = 97{,}057{,}837.33 \qquad S_r = 9{,}657{,}522.81$$
+        <p class="muted">\(S_t\): variación total de las ventas · \(S_r\): variación no explicada por la recta.</p>
+      </div>
+      <div class="card teal frag" data-f="3">
+        $$R^2 = \frac{S_t - S_r}{S_t} = \mathbf{0.9005}$$
+        <p>El modelo lineal explica el <b>90.05 %</b> de la variación mensual en medicamentos vendidos.</p>
+      </div>
+      <div class="card indigo frag" data-f="4">
+        $$r = \sqrt{R^2} = \mathbf{0.9489} \qquad S_{y/x} = \sqrt{\frac{S_r}{6-2}} \approx \mathbf{1{,}553.83}$$
+        <p class="muted">Correlación positiva muy fuerte; dispersión típica de \(\pm 1{,}554\) unidades alrededor de la recta.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 8 REGRESION PASO 6 PREDICCION Y VALIDACION -->
+<section class="slide" data-title="Regresión · Paso 6: predicción y mes 7">
+  <div class="kicker"><span class="step-badge">5</span>Regresión · Paso 6</div>
+  <h2>Predicción interactiva y validación real en julio (mes 7)</h2>
+  <div class="grid2 wide-right">
+    <div class="stack">
+      <div class="card teal">
+        <h3>Validación fuera de muestra (julio 2019)</h3>
+        <p>Con \(x = 1{,}667\) casos reales en julio:</p>
+        $$\hat y(1667) = 8{,}098.21 + 12.5450(1667) = \mathbf{29{,}010.71}$$
+        <p>Valor real SISMED: <b>29,729</b> unidades → error relativo de solo <b>2.42 %</b>.</p>
+      </div>
+      <div class="card">
+        <h3>Explora otros niveles de brote</h3>
+        <div class="slider"><span>Casos \(x\)</span><input type="range" id="sRegPred" min="300" max="2000" step="10" value="1667"><span id="vRegPred" class="mono">1667</span></div>
+        <div class="big-num" style="margin-top:6px"><span id="regPredOut">29,011</span> <span style="font-size:.46em" class="muted">unidades</span></div>
+        <div id="regPredWarn" class="feedback"></div>
+      </div>
+    </div>
+    <div class="card"><div class="canvas-wrap"><canvas id="cvRegPred"></canvas></div></div>
+  </div>
+</section>
+
+<!-- 9 PARTE II LAGRANGE ENUNCIADO -->
+<section class="slide" data-title="Parte II · Lagrange: enunciado">
+  <div class="kicker">Parte II · Interpolación polinomial de Lagrange</div>
+  <h2>Estimar casos de Dengue en un mes intermedio (mayo)</h2>
+  <div class="grid2 wide-right">
+    <div class="stack">
+      <div class="card">
+        <p>Supongamos que conocemos los casos reportados de Dengue en Tolima 2019 únicamente en <b>3 meses clave</b> del semestre: <b>enero (\(x_0=1\))</b>, <b>marzo (\(x_1=3\))</b> y <b>junio (\(x_2=6\))</b>.</p>
+      </div>
+      <div class="card"><table id="tblLagNodes"></table></div>
+      <div class="card indigo frag" data-f="1">
+        <h3>Objetivos</h3>
+        <ul class="clean">
+          <li>Construir el polinomio cuadrático único \(P_2(x)\) que pasa exactamente por los 3 nodos.</li>
+          <li>Estimar los casos en <b>mayo (\(x = 5\))</b> y contrastar contra el dato real de SIVIGILA (<b>1,099 casos</b>).</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card"><div class="canvas-wrap"><canvas id="cvLagData"></canvas></div></div>
+  </div>
+</section>
+
+<!-- 10 LAGRANGE PASO 1 Y 2 BASES -->
+<section class="slide" data-title="Lagrange · Pasos 1 y 2: bases Lᵢ(x)">
+  <div class="kicker"><span class="step-badge">1</span>Lagrange · Pasos 1 y 2</div>
+  <h2>Construir los polinomios base \(L_0(x)\), \(L_1(x)\) y \(L_2(x)\)</h2>
+  <div class="grid2 wide-right">
+    <div class="stack">
+      <div class="card frag" data-f="1">
+        $$L_0(x) = \frac{(x-3)(x-6)}{(1-3)(1-6)} = \frac{(x-3)(x-6)}{10}$$
+      </div>
+      <div class="card frag" data-f="2">
+        $$L_1(x) = \frac{(x-1)(x-6)}{(3-1)(3-6)} = \frac{(x-1)(x-6)}{-6}$$
+      </div>
+      <div class="card frag" data-f="3">
+        $$L_2(x) = \frac{(x-1)(x-3)}{(6-1)(6-3)} = \frac{(x-1)(x-3)}{15}$$
+      </div>
+      <div class="row">
+        <button class="ghost" data-bv="0" onclick="lagBaseMode(0)">L₀</button>
+        <button class="ghost" data-bv="1" onclick="lagBaseMode(1)">L₁</button>
+        <button class="ghost" data-bv="2" onclick="lagBaseMode(2)">L₂</button>
+        <button class="ghost" data-bv="all" onclick="lagBaseMode('all')">Todas</button>
+        <button class="teal" data-bv="sum" onclick="lagBaseMode('sum')">yᵢ·Lᵢ y suma P₂</button>
+      </div>
+    </div>
+    <div class="card"><div class="canvas-wrap"><canvas id="cvLagBase"></canvas></div></div>
+  </div>
+</section>
+
+<!-- 11 LAGRANGE PASO 3 EVALUACION EN MAYO -->
+<section class="slide" data-title="Lagrange · Paso 3: evaluar en mayo (x=5)">
+  <div class="kicker"><span class="step-badge">2</span>Lagrange · Paso 3</div>
+  <h2>Evaluar en \(x = 5\) (mayo) y validar contra SIVIGILA</h2>
+  <div class="grid2 wide-left">
+    <div class="stack">
+      <div class="card frag" data-f="1">$$L_0(5) = \frac{(5-3)(5-6)}{10} = \frac{-2}{10} = -0.2000$$</div>
+      <div class="card frag" data-f="2">$$L_1(5) = \frac{(5-1)(5-6)}{-6} = \frac{-4}{-6} = \frac{2}{3} \approx 0.6667$$</div>
+      <div class="card frag" data-f="3">$$L_2(5) = \frac{(5-1)(5-3)}{15} = \frac{8}{15} \approx 0.5333$$</div>
+      <div class="card amber frag" data-f="4">
+        <p><b>Verificación rápida:</b> \(-0.2 + \frac{2}{3} + \frac{8}{15} = \mathbf{1.0000}\ \checkmark\)</p>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="card"><table id="tblLagEval"></table></div>
+      <div class="card teal frag" data-f="5">
+        $$P_2(5) = \mathbf{1{,}042.8\ \text{casos}}$$
+        <p>Dato real SIVIGILA (mayo): <b>1,099 casos</b> → Error absoluto: <b>56.2</b> · Error relativo: <b>5.11 %</b>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 12 LAGRANGE PASO 4 POLINOMIO Y PESOS -->
+<section class="slide" data-title="Lagrange · Paso 4: polinomio y pesos">
+  <div class="kicker"><span class="step-badge">3</span>Lagrange · Paso 4</div>
+  <h2>Polinomio expandido y explorador de pesos \(L_i(x)\)</h2>
+  <div class="grid2 wide-right">
+    <div class="stack">
+      <div class="card indigo">
+        <p>Expandiendo \(P_2(x) = 512L_0 + 821L_1 + 1121L_2\):</p>
+        <div class="math-big">$$P_2(x) = -10.9\,x^2 + 198.1\,x + 324.8$$</div>
+      </div>
+      <div class="card">
+        <div class="slider"><span>Mes \(x\)</span><input type="range" id="sLagPred" min="1" max="7" step="0.25" value="5"><span id="vLagPred" class="mono">5.00</span></div>
+        <div class="big-num" style="margin-top:6px"><span id="lagPredOut">1,042.8</span> <span style="font-size:.46em" class="muted">casos</span></div>
+        <div id="lagPredWarn" class="feedback"></div>
+      </div>
+      <div class="card">
+        <h3>Pesos \(L_i(x)\)</h3>
+        <div id="lagBars"></div>
+      </div>
+    </div>
+    <div class="card"><div class="canvas-wrap"><canvas id="cvLagPred"></canvas></div></div>
+  </div>
+</section>
+
+<!-- 13 LIMITACIONES: GRADO 2 VS GRADO 5 -->
+<section class="slide" data-title="Limitaciones: P₂ vs P₅">
+  <div class="kicker">Análisis crítico · Fenómeno de oscilación</div>
+  <h2>¿Conviene interpolar los 6 meses con grado 5?</h2>
+  <div class="grid2 wide-right">
+    <div class="stack">
+      <div class="card">
+        <p>Comparemos nuestro polinomio cuadrático \(P_2(x)\) (3 nodos) frente al polinomio único de <b>grado 5</b> \(P_5(x)\) que pasa por los 6 meses del semestre (incluyendo el pico de abril: 1,340 casos).</p>
+      </div>
+      <div class="card rose frag" data-f="1">
+        <h3>Riesgo de grado alto (\(P_5\))</h3>
+        <p>Al forzar el paso exacto por el pico de abril, \(P_5(x)\) oscila violentamente entre meses y al extrapolar a julio (\(x=7\)) dispara un valor absurdo (<b>+7,562 casos</b> vs. 1,667 reales).</p>
+      </div>
+      <div class="card teal frag" data-f="2">
+        <h3>Lección para el proyecto</h3>
+        <p>En series epidemiológicas con ruido, <b>Lagrange de grado bajo (2 o 3)</b> sirve para imputar un mes faltante puntual, mientras que para pronosticar tendencias se prefieren <b>regresión o modelos ML</b>.</p>
+      </div>
+      <div class="row">
+        <button class="teal" onclick="setCompMode('p2')">Solo P₂ (grado 2)</button>
+        <button class="rose" onclick="setCompMode('both')">Comparar P₂ vs P₅</button>
+      </div>
+    </div>
+    <div class="card"><div class="canvas-wrap"><canvas id="cvComp"></canvas></div></div>
+  </div>
+</section>
+
+<!-- 14 GEOGEBRA -->
+<section class="slide" data-title="Verificación en GeoGebra">
+  <div class="kicker">Verificación computacional</div>
+  <h2>Verificación en GeoGebra Classic</h2>
+  <div class="grid2" style="grid-template-columns:.84fr 1.16fr">
+    <div class="stack" style="overflow-y:auto">
+      <div class="card">
+        <h3 style="margin-bottom:6px">1. Comandos de Regresión Lineal</h3>
+        <div class="cmd"><span>R = {(512,16334),(558,13017),(821,18341),(1340,24471),(1099,21385),(1121,23424)}</span><button onclick="copyCmd(this)">Copiar</button></div>
+        <div class="cmd"><span>f = AjusteLineal(R)</span><button onclick="copyCmd(this)">Copiar</button></div>
+        <div class="cmd"><span>R2 = RCuadrado(R, f)</span><button onclick="copyCmd(this)">Copiar</button></div>
+        <div class="cmd"><span>Jul = (1667, f(1667))</span><button onclick="copyCmd(this)">Copiar</button></div>
+      </div>
+      <div class="card">
+        <h3 style="margin-bottom:6px">2. Comandos de Interpolación de Lagrange</h3>
+        <div class="cmd"><span>N = {(1,512),(3,821),(6,1121)}</span><button onclick="copyCmd(this)">Copiar</button></div>
+        <div class="cmd"><span>p = Polinomio(N)</span><button onclick="copyCmd(this)">Copiar</button></div>
+        <div class="cmd"><span>May = (5, p(5))</span><button onclick="copyCmd(this)">Copiar</button></div>
+      </div>
+      <div class="row">
+        <button class="teal" onclick="ggbLoadReg()">Cargar Regresión</button>
+        <button class="amber" onclick="ggbLoadLag()">Cargar Lagrange</button>
+        <a class="btn" style="text-decoration:none;background:#fff;color:var(--indigo);border:1.5px solid #cfd3ff" href="https://www.geogebra.org/classic" target="_blank" rel="noopener">Abrir GeoGebra ↗</a>
+      </div>
+    </div>
+    <div class="card" style="padding:10px"><div id="ggb">Cargando GeoGebra…</div></div>
+  </div>
+</section>
+
+<!-- 15 CIERRE COMPARATIVO -->
+<section class="slide" data-title="Resumen y conclusiones">
+  <div class="kicker">Cierre · Integración con Minería de Datos</div>
+  <h2>Resumen comparativo y reproducibilidad</h2>
+  <div class="grid2">
+    <div class="stack">
+      <div class="kpi-grid">
+        <div class="kpi"><div class="lbl">Regresión R²</div><div class="val" style="color:var(--teal)">90.05 %</div></div>
+        <div class="kpi"><div class="lbl">Error Mes 7</div><div class="val" style="color:var(--indigo)">2.42 %</div></div>
+        <div class="kpi"><div class="lbl">Error Lagrange</div><div class="val" style="color:var(--amber)">5.11 %</div></div>
+      </div>
+      <div class="card indigo">
+        <h3>Regresión Lineal (Mínimos Cuadrados)</h3>
+        <ul class="clean">
+          <li>\(\hat y = 8{,}098.21 + 12.5450\,x\) (\(r = 0.9489\), \(S_{y/x} = 1{,}553.83\)).</li>
+          <li><b>Ideal en el proyecto</b> para cuantificar el impacto de los brotes de Dengue sobre la demanda de medicamentos y anticipar riesgo de desabastecimiento.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="card teal">
+        <h3>Interpolación de Lagrange (\(P_2\))</h3>
+        <ul class="clean">
+          <li>\(P_2(x) = -10.9\,x^2 + 198.1\,x + 324.8\), con \(P_2(5) = 1{,}042.8\) vs. \(1{,}099\) reales.</li>
+          <li><b>Ideal en el proyecto</b> para imputar localmente un dato faltante en una serie corta (sin ruido extremo), evitando grados altos por oscilación.</li>
+        </ul>
+      </div>
+      <div class="card amber">
+        <h3>Reproducibilidad en el repositorio</h3>
+        <p class="mono" style="font-size:13px;margin-top:4px">python matematicas/aplicacion_metodos_numericos.py</p>
+        <p class="muted" style="margin-top:6px">Genera <code>muestra_tolima_dengue_2019.csv</code> y <code>resultados_metodos_numericos.json</code> verificando cada ecuación desde cero.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<nav class="nav">
+  <div class="title" id="navTitle"></div>
+  <div class="dots" id="dots"></div>
+  <div class="ctrls">
+    <button class="ghost" onclick="prev()">◂</button>
+    <span class="counter" id="counter"></span>
+    <button onclick="next()">▸</button>
+    <button class="ghost" onclick="toggleFS()" title="Pantalla completa">⛶</button>
+  </div>
+</nav>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================= DATOS REALES TOLIMA · DENGUE · 2019 ================= */
+const SAMPLE = [
+  {mes:1, nom:'Ene', casos:512,  temp:27.29, lluv:29.11,  meds:16334, rol:'Regresión + Nodo L₀'},
+  {mes:2, nom:'Feb', casos:558,  temp:27.79, lluv:54.44,  meds:13017, rol:'Regresión'},
+  {mes:3, nom:'Mar', casos:821,  temp:25.06, lluv:77.11,  meds:18341, rol:'Regresión + Nodo L₁'},
+  {mes:4, nom:'Abr', casos:1340, temp:25.18, lluv:173.46, meds:24471, rol:'Regresión'},
+  {mes:5, nom:'May', casos:1099, temp:24.96, lluv:121.61, meds:21385, rol:'Regresión + Valid. Lagrange'},
+  {mes:6, nom:'Jun', casos:1121, temp:26.46, lluv:106.52, meds:23424, rol:'Regresión + Nodo L₂'},
+  {mes:7, nom:'Jul', casos:1667, temp:28.19, lluv:55.49,  meds:29729, rol:'Valid. Extrapolación'}
+];
+const SEM1 = SAMPLE.slice(0, 6);
+const MES7 = SAMPLE[6];
+const RX = SEM1.map(d => d.casos);
+const RY = SEM1.map(d => d.meds);
+
+function fitLine(x, y){
+  const n = x.length; let sx=0, sy=0, sxx=0, sxy=0;
+  for(let i=0;i<n;i++){ sx+=x[i]; sy+=y[i]; sxx+=x[i]*x[i]; sxy+=x[i]*y[i]; }
+  const a1 = (n*sxy - sx*sy)/(n*sxx - sx*sx);
+  const a0 = sy/n - a1*(sx/n);
+  let st=0, sr=0; const ym=sy/n;
+  for(let i=0;i<n;i++){ st+=(y[i]-ym)**2; sr+=(y[i]-a0-a1*x[i])**2; }
+  return {n,sx,sy,sxx,sxy,a0,a1,st,sr,r2:(st-sr)/st,r:Math.sqrt((st-sr)/st),syx:Math.sqrt(sr/(n-2)),xm:sx/n,ym};
+}
+const FIT = fitLine(RX, RY);
+
+function Li(xs, i, x){
+  let L = 1;
+  for(let j=0;j<xs.length;j++) if(j!==i) L *= (x - xs[j]) / (xs[i] - xs[j]);
+  return L;
+}
+function lagrangeEval(xs, ys, x){
+  let s = 0;
+  for(let i=0;i<xs.length;i++) s += ys[i] * Li(xs, i, x);
+  return s;
+}
+
+const LX = [1, 3, 6], LY = [512, 821, 1121];
+const P2 = x => lagrangeEval(LX, LY, x);
+const ALL_MX = SEM1.map(d => d.mes), ALL_MY = SEM1.map(d => d.casos);
+const P5 = x => lagrangeEval(ALL_MX, ALL_MY, x);
+
+const fmt = (v, d=2) => Number(v).toLocaleString('en-US', {minimumFractionDigits:d, maximumFractionDigits:d});
+const fmt0 = v => Math.round(v).toLocaleString('en-US');
+
+/* ================= GRAFICADOR CANVAS ================= */
+const C = {ink:'#1b2340', grid:'#e8eaf4', axis:'#9aa1bd', pt:'#4f46e5', teal:'#0d9488', rose:'#e11d48', amber:'#d97706', gray:'#9aa1bd'};
+const LCOL = ['#4f46e5', '#e11d48', '#d97706'];
+
+function setupCanvas(cv){
+  const r = cv.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  if(r.width < 10 || r.height < 10) return null;
+  cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr);
+  const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return {ctx, w:r.width, h:r.height};
+}
+
+function plot(cv, o){
+  const s = setupCanvas(cv); if(!s) return null;
+  const {ctx, w, h} = s;
+  const m = {l:o.ml??64, r:18, t:18, b:o.mb??46};
+  const W = w - m.l - m.r, H = h - m.t - m.b;
+  const sx = x => m.l + (x - o.xmin) / (o.xmax - o.xmin) * W;
+  const sy = y => m.t + H - (y - o.ymin) / (o.ymax - o.ymin) * H;
+  ctx.clearRect(0, 0, w, h);
+  ctx.font = '12px Inter,system-ui,sans-serif'; ctx.lineWidth = 1;
+  for(let x = Math.ceil(o.xmin/o.xstep)*o.xstep; x <= o.xmax + 1e-9; x += o.xstep){
+    ctx.strokeStyle = C.grid; ctx.beginPath(); ctx.moveTo(sx(x), m.t); ctx.lineTo(sx(x), m.t+H); ctx.stroke();
+    ctx.fillStyle = C.axis; ctx.textAlign = 'center'; ctx.fillText(o.xfmt ? o.xfmt(x) : +x.toFixed(2), sx(x), m.t+H+16);
+  }
+  for(let y = Math.ceil(o.ymin/o.ystep)*o.ystep; y <= o.ymax + 1e-9; y += o.ystep){
+    ctx.strokeStyle = (Math.abs(y) < 1e-9 && o.zero) ? C.axis : C.grid;
+    ctx.beginPath(); ctx.moveTo(m.l, sy(y)); ctx.lineTo(m.l+W, sy(y)); ctx.stroke();
+    ctx.fillStyle = C.axis; ctx.textAlign = 'right'; ctx.fillText(o.yfmt ? o.yfmt(y) : +y.toFixed(2), m.l-8, sy(y)+4);
+  }
+  ctx.strokeStyle = C.axis; ctx.lineWidth = 1.5; ctx.strokeRect(m.l, m.t, W, H);
+  ctx.fillStyle = C.ink; ctx.font = '600 13px Inter,system-ui,sans-serif';
+  if(o.xlabel){ ctx.textAlign = 'center'; ctx.fillText(o.xlabel, m.l+W/2, h-8); }
+  if(o.ylabel){ ctx.save(); ctx.translate(15, m.t+H/2); ctx.rotate(-Math.PI/2); ctx.textAlign='center'; ctx.fillText(o.ylabel, 0, 0); ctx.restore(); }
+
+  ctx.save(); ctx.beginPath(); ctx.rect(m.l, m.t, W, H); ctx.clip();
+  if(o.shade){ ctx.fillStyle = 'rgba(13,148,136,.08)'; o.shade.forEach(([a,b]) => ctx.fillRect(sx(a), m.t, sx(b)-sx(a), H)); }
+  (o.vlines||[]).forEach(v => {
+    ctx.strokeStyle = v.color || C.gray; ctx.setLineDash([4,4]); ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.moveTo(sx(v.x), m.t); ctx.lineTo(sx(v.x), m.t+H); ctx.stroke(); ctx.setLineDash([]);
+  });
+  (o.curves||[]).forEach(c => {
+    ctx.strokeStyle = c.color; ctx.lineWidth = c.width || 3; ctx.setLineDash(c.dash || []); ctx.globalAlpha = c.alpha ?? 1;
+    ctx.beginPath();
+    const N = 500;
+    for(let i=0;i<=N;i++){
+      const x = o.xmin + (o.xmax - o.xmin)*i/N;
+      let y = c.f(x);
+      y = Math.max(o.ymin - 5*(o.ymax-o.ymin), Math.min(o.ymax + 5*(o.ymax-o.ymin), y));
+      i ? ctx.lineTo(sx(x), sy(y)) : ctx.moveTo(sx(x), sy(y));
+    }
+    ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = 1;
+  });
+  if(o.residuals && o.line){
+    ctx.strokeStyle = C.rose; ctx.lineWidth = 2; ctx.setLineDash([5,4]);
+    (o.pts||[]).forEach(([x,y]) => {
+      const yh = o.line.a0 + o.line.a1*x;
+      ctx.beginPath(); ctx.moveTo(sx(x), sy(y)); ctx.lineTo(sx(x), sy(yh)); ctx.stroke();
+    });
+    ctx.setLineDash([]);
+  }
+  (o.extraPts||[]).forEach(ep => {
+    ctx.fillStyle = ep.fill || '#fff'; ctx.strokeStyle = ep.color || C.gray; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(sx(ep.x), sy(ep.y), ep.r || 5, 0, 7); ctx.fill(); ctx.stroke();
+    if(ep.label){ ctx.font='600 11px Inter'; ctx.fillStyle=ep.color||C.muted; ctx.textAlign=ep.left?'right':'left';
+      ctx.fillText(ep.label, sx(ep.x)+(ep.left?-9:9), sy(ep.y)+(ep.dy??-8)); }
+  });
+  (o.pts||[]).forEach(([x,y], k) => {
+    const col = o.ptColors ? o.ptColors[k] : C.pt;
+    ctx.fillStyle = '#fff'; ctx.strokeStyle = col; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.arc(sx(x), sy(y), o.ptR || 6, 0, 7); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = col; ctx.beginPath(); ctx.arc(sx(x), sy(y), (o.ptR || 6)/2, 0, 7); ctx.fill();
+    if(o.ptLabels){ ctx.font='600 11px Inter'; ctx.fillStyle=C.ink; ctx.textAlign='left';
+      ctx.fillText(o.ptLabels[k], sx(x)+8, sy(y)-8); }
+  });
+  (o.marks||[]).forEach(mk => {
+    const col = mk.color || C.amber;
+    if(mk.guide){
+      ctx.strokeStyle = col; ctx.setLineDash([4,4]); ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(sx(mk.x), sy(o.ymin)); ctx.lineTo(sx(mk.x), sy(mk.y)); ctx.lineTo(sx(o.xmin), sy(mk.y)); ctx.stroke(); ctx.setLineDash([]);
+    }
+    ctx.fillStyle = col; ctx.beginPath();
+    ctx.moveTo(sx(mk.x), sy(mk.y)-8); ctx.lineTo(sx(mk.x)+8, sy(mk.y)); ctx.lineTo(sx(mk.x), sy(mk.y)+8); ctx.lineTo(sx(mk.x)-8, sy(mk.y)); ctx.closePath(); ctx.fill();
+    if(mk.label){ ctx.font='700 12px Inter'; ctx.fillStyle=col; ctx.textAlign=mk.left?'right':'left';
+      ctx.fillText(mk.label, sx(mk.x)+(mk.left?-12:12), sy(mk.y)+(mk.below?20:-10)); }
+  });
+  ctx.restore();
+  if(o.legend){
+    let yy = m.t + 20; ctx.font = '700 13px Inter'; ctx.textAlign = 'left';
+    o.legend.forEach(l => {
+      ctx.fillStyle = l.color; ctx.fillRect(m.l+12, yy-8, 15, 4);
+      ctx.fillText(l.text, m.l+32, yy-2); yy += 19;
+    });
+  }
+}
+
+/* ================= TABLAS ================= */
+function buildTables(){
+  let s = '<tr><th>Mes</th><th>Casos (x)</th><th>Medicamentos (y)</th><th>Temp (°C)</th><th>Rol en la aplicación</th></tr>';
+  SAMPLE.forEach(d => {
+    const cls = d.mes===7 ? ' class="ext"' : ([1,3,6].includes(d.mes) ? ' class="hi"' : '');
+    s += `<tr${cls}><td>${d.mes} (${d.nom})</td><td>${fmt0(d.casos)}</td><td>${fmt0(d.meds)}</td><td>${d.temp.toFixed(2)}</td><td style="text-align:left">${d.rol}</td></tr>`;
+  });
+  document.getElementById('tblSample').innerHTML = s;
+
+  let t = '<tr><th>Mes</th><th>x<sub>i</sub></th><th>y<sub>i</sub></th><th class="frag" data-f="1">x<sub>i</sub>²</th><th class="frag" data-f="2">x<sub>i</sub>·y<sub>i</sub></th></tr>';
+  SEM1.forEach(d => {
+    t += `<tr><td>${d.mes}</td><td>${fmt0(d.casos)}</td><td>${fmt0(d.meds)}</td><td class="frag" data-f="1">${fmt0(d.casos*d.casos)}</td><td class="frag" data-f="2">${fmt0(d.casos*d.meds)}</td></tr>`;
+  });
+  t += `<tr class="sum"><td class="frag" data-f="3">Σ</td><td class="frag" data-f="3">${fmt0(FIT.sx)}</td><td class="frag" data-f="3">${fmt0(FIT.sy)}</td><td class="frag" data-f="3">${fmt0(FIT.sxx)}</td><td class="frag" data-f="3">${fmt0(FIT.sxy)}</td></tr>`;
+  document.getElementById('tblRegSums').innerHTML = t;
+
+  let r = '<tr><th>x<sub>i</sub></th><th>y<sub>i</sub></th><th class="frag" data-f="1">ŷ<sub>i</sub></th><th class="frag" data-f="1">e<sub>i</sub></th><th class="frag" data-f="1">e<sub>i</sub>²</th><th class="frag" data-f="2">(y<sub>i</sub>−ȳ)²</th></tr>';
+  SEM1.forEach(d => {
+    const yh = FIT.a0 + FIT.a1*d.casos, e = d.meds - yh;
+    r += `<tr><td>${fmt0(d.casos)}</td><td>${fmt0(d.meds)}</td><td class="frag" data-f="1">${fmt(yh,1)}</td><td class="frag" data-f="1" style="color:${e<0?'var(--rose)':'var(--teal)'}">${fmt(e,1)}</td><td class="frag" data-f="1">${fmt0(e*e)}</td><td class="frag" data-f="2">${fmt0((d.meds-FIT.ym)**2)}</td></tr>`;
+  });
+  r += `<tr class="sum"><td>Σ</td><td>${fmt0(FIT.sy)}</td><td class="frag" data-f="1">${fmt0(FIT.sy)}</td><td class="frag" data-f="1">≈ 0</td><td class="frag" data-f="2">${fmt0(FIT.sr)}</td><td class="frag" data-f="2">${fmt0(FIT.st)}</td></tr>`;
+  document.getElementById('tblRegRes').innerHTML = r;
+
+  document.getElementById('tblLagNodes').innerHTML =
+    '<tr><th style="border-radius:8px 0 0 8px">x: mes (2019)</th><td>1 (Ene)</td><td>3 (Mar)</td><td>6 (Jun)</td></tr>' +
+    '<tr><th style="border-radius:8px 0 0 8px">y: casos Dengue</th><td>512</td><td>821</td><td>1,121</td></tr>';
+
+  let le = '<tr><th>i</th><th>y<sub>i</sub></th><th class="frag" data-f="1">L<sub>i</sub>(5)</th><th class="frag" data-f="4">y<sub>i</sub>·L<sub>i</sub>(5)</th></tr>';
+  const fs = [1, 2, 3];
+  LX.forEach((x, i) => {
+    const l = Li(LX, i, 5);
+    le += `<tr><td>${i}</td><td>${fmt0(LY[i])}</td><td class="frag" data-f="${fs[i]}">${l.toFixed(4)}</td><td class="frag" data-f="4">${fmt(LY[i]*l, 2)}</td></tr>`;
+  });
+  le += `<tr class="sum"><td>Σ</td><td></td><td class="frag" data-f="4">1.0000</td><td class="frag" data-f="5">${fmt(P2(5), 2)}</td></tr>`;
+  document.getElementById('tblLagEval').innerHTML = le;
+
+  document.getElementById('lagBars').innerHTML = [0,1,2].map(i =>
+    `<div class="bar-row"><span class="mono" style="color:${LCOL[i]};font-weight:700">L${'₀₁₂'[i]}</span>` +
+    `<div class="bar-track"><div class="bar-zero"></div><div class="bar-fill" id="lbar${i}" style="background:${LCOL[i]}"></div></div>` +
+    `<span class="mono" id="lbarv${i}">0</span></div>`
+  ).join('');
+}
+
+/* ================= DIBUJOS POR DIAPOSITIVA ================= */
+const REG_BASE = {
+  xmin:400, xmax:1500, ymin:10000, ymax:28000, xstep:200, ystep:4000,
+  xlabel:'x: casos reportados de Dengue', ylabel:'y: medicamentos vendidos',
+  yfmt:v => (v/1000)+'k',
+  pts:SEM1.map(d => [d.casos, d.meds]),
+  ptLabels:SEM1.map(d => d.nom)
+};
+
+function drawCover(){
+  plot(document.getElementById('cvCover'), {
+    xmin:400, xmax:1800, ymin:10000, ymax:32000, xstep:300, ystep:5000, ml:48, mb:32,
+    yfmt:v => (v/1000)+'k',
+    pts:SEM1.map(d => [d.casos, d.meds]),
+    extraPts:[{x:MES7.casos, y:MES7.meds, color:C.amber, fill:C.amber, r:6, label:'Jul (real)', left:true}],
+    curves:[{f:x => FIT.a0 + FIT.a1*x, color:C.teal, width:3.5}],
+    residuals:true, line:FIT,
+    legend:[{color:C.teal, text:'ŷ = 8,098 + 12.55x (R² = 90.05%)'}]
+  });
+}
+
+let regMotivState = 'pts';
+function regMotiv(m){ regMotivState = m; drawRegMotiv(); }
+function drawRegMotiv(){
+  const o = {...REG_BASE};
+  if(regMotivState === 'interp'){
+    o.curves = [{f:x => lagrangeEval(RX, RY, x), color:C.rose, width:2.5}];
+    o.legend = [{color:C.rose, text:'Polinomio grado 5: oscila por el ruido'}];
+  }
+  if(regMotivState === 'fit'){
+    o.curves = [{f:x => FIT.a0 + FIT.a1*x, color:C.teal, width:3.5}];
+    o.legend = [{color:C.teal, text:'Recta mínimos cuadrados: tendencia real'}];
+  }
+  plot(document.getElementById('cvRegMotiv'), o);
+}
+
+function drawRegModel(rev){
+  const o = {...REG_BASE};
+  if(rev >= 1){ o.curves = [{f:x => FIT.a0 + FIT.a1*x, color:C.teal, width:3.5}]; o.legend=[{color:C.teal, text:'ŷ = 8,098.21 + 12.5450x'}]; }
+  if(rev >= 2){ o.residuals = true; o.line = FIT; }
+  if(rev >= 3){ o.marks = [{x:FIT.xm, y:FIT.ym, color:C.amber, label:'(x̄, ȳ) = (908.5, 19,495)', left:true}]; }
+  plot(document.getElementById('cvRegModel'), o);
+}
+
+function drawRegPred(){
+  const x = +document.getElementById('sRegPred').value;
+  const y = FIT.a0 + FIT.a1*x;
+  document.getElementById('vRegPred').textContent = x;
+  document.getElementById('regPredOut').textContent = fmt0(y);
+  const w = document.getElementById('regPredWarn');
+  if(x < 512 || x > 1340){ w.textContent = '⚠ Extrapolación: fuera del rango muestral (512 a 1,340 casos)'; w.className = 'feedback bad'; }
+  else { w.textContent = '✔ Interpolación: dentro del rango de la muestra'; w.className = 'feedback ok'; }
+  plot(document.getElementById('cvRegPred'), {
+    xmin:300, xmax:2050, ymin:10000, ymax:34000, xstep:300, ystep:4000,
+    xlabel:'x: casos de Dengue', ylabel:'y: medicamentos vendidos', yfmt:v => (v/1000)+'k',
+    shade:[[512, 1340]],
+    pts:SEM1.map(d => [d.casos, d.meds]),
+    extraPts:[{x:MES7.casos, y:MES7.meds, color:C.indigo, fill:'#eef0ff', r:7, label:'Jul real (29,729)', left:true, dy:-12}],
+    curves:[{f:v => FIT.a0 + FIT.a1*v, color:C.teal, width:3}],
+    marks:[{x, y, guide:true, color:(x<512||x>1340)?C.rose:C.amber, label:`ŷ(${x}) = ${fmt0(y)}`, left:x>1200, below:x>1550}]
+  });
+}
+
+function drawLagData(){
+  plot(document.getElementById('cvLagData'), {
+    xmin:0.5, xmax:6.8, ymin:300, ymax:1500, xstep:1, ystep:200,
+    xlabel:'x: mes de 2019', ylabel:'y: casos de Dengue',
+    pts:LX.map((x,i) => [x, LY[i]]),
+    ptLabels:['(1, 512)','(3, 821)','(6, 1121)'],
+    vlines:[{x:5, color:C.rose}],
+    marks:[{x:5, y:1410, color:C.rose, label:'¿Casos en mayo (x = 5)?', left:true}]
+  });
+}
+
+let lagBMode = 'all';
+function lagBaseMode(m){
+  lagBMode = m;
+  document.querySelectorAll('[data-bv]').forEach(b => {
+    const on = b.dataset.bv === String(m);
+    b.style.background = on ? 'var(--indigo)' : '';
+    b.style.color = on ? '#fff' : '';
+  });
+  drawLagBase();
+}
+function drawLagBase(){
+  const cv = document.getElementById('cvLagBase');
+  if(lagBMode === 'sum'){
+    plot(cv, {
+      xmin:0.5, xmax:6.8, ymin:-300, ymax:1400, xstep:1, ystep:200, zero:true,
+      xlabel:'x: mes de 2019', ylabel:'Casos de Dengue',
+      pts:LX.map((x,i) => [x, LY[i]]), vlines:LX.map(x => ({x})),
+      curves:LX.map((_,i) => ({f:x => LY[i]*Li(LX,i,x), color:LCOL[i], width:2, dash:[6,4]})).concat([{f:P2, color:C.teal, width:4}]),
+      legend:[{color:LCOL[0],text:'512·L₀(x)'},{color:LCOL[1],text:'821·L₁(x)'},{color:LCOL[2],text:'1121·L₂(x)'},{color:C.teal,text:'P₂(x) = suma'}]
+    });
+  } else {
+    const idx = lagBMode === 'all' ? [0,1,2] : [lagBMode];
+    const pts = [], cols = [];
+    idx.forEach(i => LX.forEach((x,j) => { pts.push([x, i===j?1:0]); cols.push(LCOL[i]); }));
+    plot(cv, {
+      xmin:0.5, xmax:6.8, ymin:-0.8, ymax:1.6, xstep:1, ystep:0.4, zero:true,
+      xlabel:'x: mes de 2019', ylabel:'Lᵢ(x)', vlines:LX.map(x => ({x})),
+      curves:idx.map(i => ({f:x => Li(LX,i,x), color:LCOL[i], width:3})),
+      pts, ptColors:cols, ptR:5,
+      legend:idx.map(i => ({color:LCOL[i], text:`L${'₀₁₂'[i]}(x): vale 1 en mes ${LX[i]}, 0 en los otros`}))
+    });
+  }
+}
+
+function drawLagPred(){
+  const x = +document.getElementById('sLagPred').value, y = P2(x);
+  document.getElementById('vLagPred').textContent = x.toFixed(2);
+  document.getElementById('lagPredOut').textContent = fmt(y, 1);
+  const w = document.getElementById('lagPredWarn');
+  if(x > 6){ w.textContent = '⚠ Extrapolación fuera de [1, 6]'; w.className = 'feedback bad'; }
+  else if(Math.abs(x - 5) < 1e-6){ w.textContent = '✔ Mayo: P₂(5)=1,042.8 vs Real=1,099 (error 5.11%)'; w.className = 'feedback ok'; }
+  else { w.textContent = '✔ Interpolación dentro de [1, 6]'; w.className = 'feedback ok'; }
+  [0,1,2].forEach(i => {
+    const l = Li(LX, i, x), b = document.getElementById('lbar'+i);
+    const wd = Math.min(Math.abs(l), 1.5)/1.5 * 50;
+    b.style.width = wd + '%'; b.style.left = l >= 0 ? '50%' : (50 - wd) + '%';
+    document.getElementById('lbarv'+i).textContent = l.toFixed(3);
+  });
+  plot(document.getElementById('cvLagPred'), {
+    xmin:0.5, xmax:7.4, ymin:350, ymax:1550, xstep:1, ystep:200,
+    xlabel:'x: mes de 2019', ylabel:'y: casos de Dengue',
+    shade:[[1,6]],
+    pts:LX.map((v,i) => [v, LY[i]]),
+    extraPts:[
+      {x:2, y:558, color:C.gray, label:'Feb real'},
+      {x:4, y:1340, color:C.gray, label:'Abr real'},
+      {x:5, y:1099, color:C.indigo, fill:'#eef0ff', r:6, label:'May real (1,099)', left:true, dy:-12}
+    ],
+    curves:[{f:P2, color:C.teal, width:3.5}],
+    marks:[{x, y, guide:true, color:x>6?C.rose:C.amber, label:`P₂(${x}) = ${fmt(y,1)}`, left:x>4.5, below:x===5}]
+  });
+}
+
+let compMode = 'both';
+function setCompMode(m){ compMode = m; drawComp(); }
+function drawComp(){
+  const curves = [{f:P2, color:C.teal, width:3.5}];
+  const legend = [{color:C.teal, text:'P₂(x) · 3 nodos (estable)'}];
+  if(compMode === 'both'){
+    curves.push({f:P5, color:C.rose, width:2.5, dash:[6,4]});
+    legend.push({color:C.rose, text:'P₅(x) · 6 nodos (oscila y explota en x=7)'});
+  }
+  plot(document.getElementById('cvComp'), {
+    xmin:0.6, xmax:7.3, ymin:200, ymax:2400, xstep:1, ystep:400,
+    xlabel:'x: mes de 2019', ylabel:'y: casos de Dengue',
+    pts:SEM1.map(d => [d.mes, d.casos]),
+    extraPts:[{x:7, y:1667, color:C.amber, fill:C.amber, r:6, label:'Jul real (1,667)', left:true}],
+    curves, legend
+  });
+}
+
+/* ================= GEOGEBRA ================= */
+let ggbApi = null, ggbRequested = false;
+function loadGGB(){
+  if(ggbRequested) return; ggbRequested = true;
+  const s = document.createElement('script'); s.src = 'https://www.geogebra.org/apps/deployggb.js';
+  s.onload = () => {
+    const el = document.getElementById('ggb'); el.textContent = '';
+    const app = new GGBApplet({
+      appName:'classic', width:Math.max(400, el.clientWidth), height:Math.max(380, el.clientHeight),
+      perspective:'AG', showToolBar:true, showAlgebraInput:true, showMenuBar:false,
+      showResetIcon:false, enableShiftDragZoom:true, language:'es',
+      appletOnLoad:api => { ggbApi = api; ggbLoadReg(); }
+    }, true);
+    app.inject('ggb');
+  };
+  s.onerror = () => { document.getElementById('ggb').innerHTML = '<div style="padding:24px;text-align:center">No se pudo cargar GeoGebra embebido (requiere internet). Usa <b>Abrir GeoGebra ↗</b>.</div>'; };
+  document.head.appendChild(s);
+}
+function ggbLoadReg(){
+  if(!ggbApi){ toast('GeoGebra cargando…'); return; }
+  ggbApi.reset();
+  ggbApi.evalCommand('R = {(512,16334),(558,13017),(821,18341),(1340,24471),(1099,21385),(1121,23424)}');
+  ggbApi.evalCommand('f(x) = FitLine(R)');
+  ggbApi.evalCommand('R2 = RSquare(R, f)');
+  ggbApi.evalCommand('JulPred = (1667, f(1667))');
+  ggbApi.evalCommand('JulReal = (1667, 29729)');
+  ggbApi.setColor('f', 13, 148, 136); ggbApi.setLineThickness('f', 5);
+  ggbApi.setColor('JulPred', 217, 119, 6); ggbApi.setColor('JulReal', 79, 70, 229);
+  ggbApi.setCoordSystem(300, 1900, 9000, 33000);
+  toast('Regresión Tolima 2019 cargada');
+}
+function ggbLoadLag(){
+  if(!ggbApi){ toast('GeoGebra cargando…'); return; }
+  ggbApi.reset();
+  ggbApi.evalCommand('N = {(1,512),(3,821),(6,1121)}');
+  ggbApi.evalCommand('p(x) = Polynomial(N)');
+  ggbApi.evalCommand('MayPred = (5, p(5))');
+  ggbApi.evalCommand('MayReal = (5, 1099)');
+  ggbApi.setColor('p', 13, 148, 136); ggbApi.setLineThickness('p', 5);
+  ggbApi.setColor('MayPred', 217, 119, 6); ggbApi.setColor('MayReal', 79, 70, 229);
+  ggbApi.setCoordSystem(0, 7.5, 300, 1500);
+  toast('Interpolación de Lagrange cargada');
+}
+
+/* ================= NAVEGACION ================= */
+const slides = [...document.querySelectorAll('.slide')];
+let cur = 0, rev = 0;
+function maxFrag(sl){ return Math.max(0, ...[...sl.querySelectorAll('.frag')].map(e => +e.dataset.f || 1)); }
+function applyFrags(sl){ sl.querySelectorAll('.frag').forEach(e => e.classList.toggle('shown', (+e.dataset.f || 1) <= rev)); }
+function renderSlide(i){
+  if(i === 0) drawCover();
+  if(i === 2) drawRegMotiv();
+  if(i === 5) drawRegModel(rev);
+  if(i === 7) drawRegPred();
+  if(i === 8) drawLagData();
+  if(i === 9) drawLagBase();
+  if(i === 11) drawLagPred();
+  if(i === 12) drawComp();
+  if(i === 13) loadGGB();
+}
+function go(i, r = 0){
+  cur = Math.max(0, Math.min(slides.length - 1, i)); rev = r;
+  slides.forEach((s, k) => { s.classList.toggle('active', k === cur); s.classList.toggle('before', k < cur); });
+  applyFrags(slides[cur]);
+  document.getElementById('counter').textContent = (cur + 1) + ' / ' + slides.length;
+  document.getElementById('navTitle').textContent = slides[cur].dataset.title || '';
+  document.getElementById('progress').style.width = ((cur + 1) / slides.length * 100) + '%';
+  document.querySelectorAll('#dots span').forEach((d, k) => d.classList.toggle('on', k === cur));
+  history.replaceState(null, '', '#' + (cur + 1));
+  requestAnimationFrame(() => renderSlide(cur));
+}
+function next(){ const m = maxFrag(slides[cur]); if(rev < m){ rev++; applyFrags(slides[cur]); renderSlide(cur); } else if(cur < slides.length - 1) go(cur + 1, 0); }
+function prev(){ if(rev > 0){ rev--; applyFrags(slides[cur]); renderSlide(cur); } else if(cur > 0) go(cur - 1, maxFrag(slides[cur - 1])); }
+function toggleFS(){ document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); }
+function copyCmd(btn){ navigator.clipboard.writeText(btn.previousElementSibling.textContent); toast('Comando copiado'); }
+function toast(msg){ const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(t._id); t._id = setTimeout(() => t.classList.remove('on'), 1900); }
+
+document.addEventListener('keydown', e => {
+  if(['INPUT','TEXTAREA'].includes(e.target.tagName)) return;
+  if(['ArrowRight','PageDown',' '].includes(e.key)){ e.preventDefault(); next(); }
+  else if(['ArrowLeft','PageUp'].includes(e.key)){ e.preventDefault(); prev(); }
+  else if(e.key === 'f' || e.key === 'F') toggleFS();
+  else if(e.key === 'Home') go(0);
+  else if(e.key === 'End') go(slides.length - 1);
+});
+window.addEventListener('resize', () => renderSlide(cur));
+document.getElementById('sRegPred').addEventListener('input', drawRegPred);
+document.getElementById('sLagPred').addEventListener('input', drawLagPred);
+
+window.addEventListener('DOMContentLoaded', () => {
+  buildTables();
+  const dots = document.getElementById('dots');
+  slides.forEach((s, i) => {
+    const sp = document.createElement('span'); sp.title = s.dataset.title;
+    sp.onclick = () => go(i); dots.appendChild(sp);
+  });
+  const start = parseInt(location.hash.slice(1), 10) - 1;
+  go(isNaN(start) ? 0 : start);
+  const tryMath = () => {
+    if(window.renderMathInElement) renderMathInElement(document.body, {delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}]});
+    else setTimeout(tryMath, 120);
+  };
+  tryMath();
+});
+</script>
+</body>
+</html>
