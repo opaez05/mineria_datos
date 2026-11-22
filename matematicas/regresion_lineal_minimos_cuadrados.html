@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Regresión lineal por mínimos cuadrados · Métodos Numéricos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --bg:#f5f6fb; --card:#ffffff; --ink:#1b2340; --muted:#5b6482; --line:#e3e6f0;
+  --indigo:#4f46e5; --indigo-soft:#eef0ff; --teal:#0d9488; --teal-soft:#e6f6f4;
+  --amber:#d97706; --amber-soft:#fff5e6; --rose:#e11d48; --rose-soft:#ffeef2;
+  --shadow:0 10px 30px rgba(27,35,64,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow:hidden}
+.deck{position:relative;height:100vh;width:100vw}
+.slide{position:absolute;inset:0;padding:clamp(18px,3.2vw,48px) clamp(20px,5vw,80px) 90px;display:flex;flex-direction:column;
+  opacity:0;pointer-events:none;transform:translateX(40px);transition:opacity .45s ease,transform .45s ease;overflow-y:auto}
+.slide.active{opacity:1;pointer-events:auto;transform:none}
+.slide.before{transform:translateX(-40px)}
+.kicker{font-size:clamp(12px,1vw,14px);font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--indigo);margin-bottom:6px}
+h1{font-size:clamp(32px,4.4vw,64px);line-height:1.05;font-weight:800;letter-spacing:-.02em}
+h2{font-size:clamp(24px,2.6vw,40px);font-weight:800;letter-spacing:-.01em;margin-bottom:clamp(10px,1.4vw,20px)}
+h3{font-size:clamp(16px,1.35vw,21px);font-weight:700;margin-bottom:8px}
+p,li{font-size:clamp(15px,1.25vw,20px);line-height:1.5}
+.muted{color:var(--muted)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:clamp(14px,2vw,32px);flex:1;min-height:0}
+.grid2.wide-right{grid-template-columns:.85fr 1.15fr}
+.grid2.wide-left{grid-template-columns:1.15fr .85fr}
+@media (max-width:900px){.grid2,.grid2.wide-right,.grid2.wide-left{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:clamp(14px,1.6vw,24px);box-shadow:var(--shadow)}
+.card.indigo{background:var(--indigo-soft);border-color:#d9dcff}
+.card.teal{background:var(--teal-soft);border-color:#c5ebe6}
+.card.amber{background:var(--amber-soft);border-color:#fde3bd}
+.card.rose{background:var(--rose-soft);border-color:#ffd0db}
+.stack{display:flex;flex-direction:column;gap:clamp(10px,1.2vw,16px)}
+.canvas-wrap{position:relative;width:100%;height:100%;min-height:300px}
+canvas{display:block;width:100%;height:100%}
+.pill{display:inline-block;padding:4px 12px;border-radius:999px;font-size:clamp(12px,1vw,14px);font-weight:600;background:var(--indigo-soft);color:var(--indigo)}
+button,.btn{align-self:flex-start;font:inherit;font-size:clamp(13px,1.05vw,16px);font-weight:600;border:none;border-radius:12px;padding:10px 16px;cursor:pointer;background:var(--indigo);color:#fff;transition:transform .12s,box-shadow .12s,background .2s}
+button:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(79,70,229,.25)}
+button.ghost{background:#fff;color:var(--indigo);border:1.5px solid #cfd3ff}
+button.teal{background:var(--teal)}
+button.amber{background:var(--amber)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+/* fragments */
+.frag{opacity:0;transform:translateY(10px);transition:opacity .4s,transform .4s}
+.frag.shown{opacity:1;transform:none}
+td.frag,th.frag{transform:none}
+/* tables */
+table{border-collapse:collapse;width:100%;font-size:clamp(14px,1.2vw,19px);font-variant-numeric:tabular-nums}
+th,td{padding:clamp(5px,.6vw,9px) 10px;text-align:center;border-bottom:1px solid var(--line)}
+th{background:var(--indigo);color:#fff;font-weight:600}
+th:first-child{border-radius:10px 0 0 0} th:last-child{border-radius:0 10px 0 0}
+tr.sum td{font-weight:800;background:var(--amber-soft);border-top:2px solid var(--amber)}
+.math-big{font-size:clamp(17px,1.6vw,26px)}
+.formula{background:#fff;border:1px dashed #c7cbe6;border-radius:14px;padding:12px 16px;overflow-x:auto}
+/* sliders */
+.slider{display:grid;grid-template-columns:80px 1fr 70px;align-items:center;gap:10px;font-weight:600}
+input[type=range]{width:100%;accent-color:var(--indigo)}
+.big-num{font-size:clamp(26px,2.8vw,44px);font-weight:800;font-variant-numeric:tabular-nums}
+.meter{height:14px;border-radius:999px;background:#e8eaf4;overflow:hidden}
+.meter>div{height:100%;width:0;background:linear-gradient(90deg,var(--rose),var(--amber),var(--teal));transition:width .25s}
+/* nav */
+.nav{position:fixed;left:0;right:0;bottom:0;height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(16px,3vw,40px);
+  background:rgba(245,246,251,.92);backdrop-filter:blur(8px);border-top:1px solid var(--line);z-index:50}
+.nav .title{font-size:14px;color:var(--muted);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:40vw}
+.nav .ctrls{display:flex;gap:8px;align-items:center}
+.nav button{padding:8px 14px}
+.counter{font-variant-numeric:tabular-nums;font-weight:700;min-width:64px;text-align:center}
+.progress{position:fixed;left:0;top:0;height:5px;background:linear-gradient(90deg,var(--indigo),var(--teal));z-index:60;transition:width .35s}
+.dots{display:flex;gap:6px}
+.dots span{width:8px;height:8px;border-radius:50%;background:#cfd3e6;cursor:pointer;transition:all .2s}
+.dots span.on{background:var(--indigo);width:22px;border-radius:6px}
+@media (max-width:800px){.dots{display:none}}
+.hint{font-size:13px;color:var(--muted)}
+/* cover */
+.cover{justify-content:center;background:radial-gradient(1200px 600px at 85% 20%,#e0e3ff 0%,transparent 60%),radial-gradient(900px 500px at 0% 100%,#d7f3ef 0%,transparent 60%)}
+.cover .meta{margin-top:28px;display:flex;gap:12px;flex-wrap:wrap}
+.cover canvas{position:absolute;right:4vw;bottom:110px;width:min(42vw,560px);height:min(32vw,380px);opacity:.95}
+@media (max-width:900px){.cover canvas{display:none}}
+/* quiz */
+.opt{display:block;width:100%;text-align:left;background:#fff;color:var(--ink);border:1.5px solid var(--line);margin-bottom:6px;font-weight:500;padding:8px 14px}
+.opt:hover{border-color:var(--indigo)}
+.opt.ok{background:var(--teal-soft);border-color:var(--teal)}
+.opt.bad{background:var(--rose-soft);border-color:var(--rose)}
+.feedback{font-weight:600;min-height:1.4em}
+.feedback.ok{color:var(--teal)} .feedback.bad{color:var(--rose)}
+input.num{font:inherit;font-size:18px;width:130px;padding:8px 10px;border-radius:10px;border:1.5px solid var(--line)}
+input.num:focus{outline:none;border-color:var(--indigo)}
+code,.mono{font-family:"JetBrains Mono",ui-monospace,monospace}
+.cmd{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#1b2340;color:#e8ebff;border-radius:10px;padding:8px 12px;font-family:"JetBrains Mono",monospace;font-size:clamp(12px,1vw,15px);margin-bottom:8px}
+.cmd button{padding:4px 10px;font-size:12px;background:#3b3fbf}
+#ggb{width:100%;height:100%;min-height:420px;border-radius:14px;overflow:hidden;background:#fff;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.tag{font-size:12px;font-weight:700;padding:3px 8px;border-radius:6px;background:var(--amber-soft);color:var(--amber)}
+.warn{color:var(--rose);font-weight:700}
+.step-badge{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background:var(--indigo);color:#fff;font-weight:800;margin-right:8px;font-size:15px}
+.toast{position:fixed;left:50%;bottom:80px;transform:translateX(-50%);background:#1b2340;color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;opacity:0;transition:opacity .3s;z-index:70}
+.toast.on{opacity:1}
+ul.clean{list-style:none} ul.clean li{padding-left:28px;position:relative;margin-bottom:8px}
+ul.clean li::before{content:"";position:absolute;left:6px;top:.6em;width:10px;height:10px;border-radius:3px;background:var(--indigo)}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="deck" id="deck">
+
+<!-- 1 PORTADA -->
+<section class="slide cover" data-title="Portada">
+  <div class="kicker">Métodos Numéricos · Ingeniería de Sistemas</div>
+  <h1>Ajuste de curvas:<br><span style="color:var(--indigo)">Regresión lineal</span><br>por mínimos cuadrados</h1>
+  <p class="muted" style="margin-top:18px;max-width:640px">Cómo encontrar la "mejor" recta para un conjunto de datos con ruido, con un ejercicio guiado y verificación en GeoGebra.</p>
+  <div class="meta">
+    <span class="pill">UNIMINUTO · Ibagué</span>
+    <span class="pill" style="background:var(--teal-soft);color:var(--teal)">Prof. Juan Carlos González Sánchez</span>
+  </div>
+  <p class="hint" style="margin-top:28px">Usa ← → o la barra espaciadora para avanzar · F para pantalla completa</p>
+  <canvas id="cvCover"></canvas>
+</section>
+
+<!-- 2 MOTIVACION -->
+<section class="slide" data-title="¿Interpolar o ajustar?">
+  <div class="kicker">Motivación</div>
+  <h2>¿Pasar por todos los puntos… o capturar la tendencia?</h2>
+  <div class="grid2 wide-right">
+    <div class="stack">
+      <div class="card">
+        <p>Los datos experimentales <b>siempre traen ruido</b>: errores de medición, variaciones aleatorias, redondeos.</p>
+      </div>
+      <div class="card rose frag" data-f="1">
+        <h3>Interpolación</h3>
+        <p>Obliga a la curva a pasar por <b>todos</b> los puntos. Con datos ruidosos, la curva oscila y "aprende el ruido".</p>
+      </div>
+      <div class="card teal frag" data-f="2">
+        <h3>Regresión (ajuste)</h3>
+        <p>Busca una curva sencilla que pase <b>cerca</b> de los puntos y represente la tendencia general.</p>
+      </div>
+      <div class="row">
+        <button class="ghost" onclick="motivMode('pts')">Solo datos</button>
+        <button style="background:var(--rose)" onclick="motivMode('interp')">Interpolar</button>
+        <button class="teal" onclick="motivMode('fit')">Ajustar recta</button>
+      </div>
+    </div>
+    <div class="card"><div class="canvas-wrap"><canvas id="cvMotiv"></canvas></div></div>
+  </div>
+</section>
+
+<!-- 3 RESIDUO -->
+<section class="slide" data-title="El residuo">
+  <div class="kicker">La idea clave</div>
+  <h2>El residuo: qué tan lejos queda cada punto de la recta</h2>
+  <div class="grid2">
+    <div class="stack">
+      <div class="card indigo">
+        <p>Buscamos un modelo lineal</p>
+        <div class="math-big">$$\hat y = a_0 + a_1\,x$$</div>
+        <p>Para cada dato \((x_i, y_i)\), el <b>residuo</b> (error) es la diferencia vertical:</p>
+        <div class="math-big">$$e_i = y_i - (a_0 + a_1 x_i)$$</div>
+      </div>
+      <div class="card frag" data-f="1">
+        <h3>¿Qué significa "mejor recta"?</h3>
+        <p>Tres criterios posibles:</p>
+        <ul class="clean" style="margin-top:8px">
+          <li class="frag" data-f="2">\(\min \sum e_i\) → <span class="warn">falla:</span> los errores + y − se cancelan.</li>
+          <li class="frag" data-f="3">\(\min \sum |e_i|\) → <span class="warn">falla:</span> la solución no siempre es única.</li>
+          <li class="frag" data-f="4">\(\min \sum e_i^2\) → <b style="color:var(--teal)">mínimos cuadrados ✔</b> solución única y fácil de calcular.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card"><div class="canvas-wrap"><canvas id="cvResid"></canvas></div></div>
+  </div>
+</section>
+
+<!-- 4 INTERACTIVO -->
+<section class="slide" data-title="Ajusta tú la recta">
+  <div class="kicker">Actividad interactiva</div>
+  <h2>Ajusta tú la recta: ¿puedes minimizar \(S_r\)?</h2>
+  <div class="grid2 wide-right">
+    <div class="stack">
+      <div class="card">
+        <p class="muted" style="margin-bottom:10px">Mueve los deslizadores. Los cuadrados rojos representan \(e_i^2\): su área total es la suma de residuos al cuadrado.</p>
+        <div class="slider"><span>\(a_0\)</span><input type="range" id="sA0" min="0" max="200" step="0.5" value="60"><span id="vA0" class="mono">60</span></div>
+        <div class="slider" style="margin-top:8px"><span>\(a_1\)</span><input type="range" id="sA1" min="0" max="60" step="0.1" value="35"><span id="vA1" class="mono">35</span></div>
+        <label class="row" style="margin-top:10px;font-size:15px"><input type="checkbox" id="chkSq" checked> Mostrar cuadrados de los residuos</label>
+      </div>
+      <div class="card amber">
+        <div class="muted" style="font-weight:600">Suma de residuos al cuadrado</div>
+        <div class="row" style="justify-content:space-between"><div class="big-num" id="srVal">—</div><div id="srMsg" style="font-weight:700"></div></div>
+        <div class="meter" style="margin-top:8px"><div id="srMeter"></div></div>
+        <div class="hint" style="margin-top:6px">Barra llena = estás en el mínimo</div>
+      </div>
+      <div class="row">
+        <button class="teal" onclick="animateToOptimum()">Ver la recta óptima</button>
+        <button class="ghost" onclick="resetPlay()">Reiniciar</button>
+      </div>
+    </div>
+    <div class="card"><div class="canvas-wrap"><canvas id="cvPlay"></canvas></div></div>
+  </div>
+</section>
+
+<!-- 5 DEDUCCION -->
+<section class="slide" data-title="Deducción">
+  <div class="kicker">Fundamento matemático</div>
+  <h2>Minimizar \(S_r\): derivar e igualar a cero</h2>
+  <div class="grid2">
+    <div class="stack">
+      <div class="card indigo">
+        <p>Función a minimizar (depende de \(a_0\) y \(a_1\)):</p>
+        <div class="math-big">$$S_r(a_0,a_1)=\sum_{i=1}^{n}\left(y_i-a_0-a_1x_i\right)^2$$</div>
+      </div>
+      <div class="card frag" data-f="1">
+        <p>Condición de mínimo: derivadas parciales nulas.</p>
+        $$\frac{\partial S_r}{\partial a_0}=-2\sum (y_i-a_0-a_1x_i)=0$$
+        $$\frac{\partial S_r}{\partial a_1}=-2\sum (y_i-a_0-a_1x_i)\,x_i=0$$
+      </div>
+    </div>
+    <div class="stack">
+      <div class="card teal frag" data-f="2">
+        <h3>Ecuaciones normales</h3>
+        $$\begin{cases} n\,a_0 + \left(\sum x_i\right)a_1 = \sum y_i \\[4pt] \left(\sum x_i\right)a_0 + \left(\sum x_i^2\right)a_1 = \sum x_i y_i \end{cases}$$
+        <p class="muted">Es un sistema lineal 2×2. Lo podríamos resolver con Gauss-Seidel, pero tiene solución cerrada:</p>
+      </div>
+      <div class="card amber frag" data-f="3">
+        <div class="math-big">$$a_1=\frac{n\sum x_iy_i-\sum x_i\sum y_i}{n\sum x_i^2-\left(\sum x_i\right)^2}$$
+        $$a_0=\bar y - a_1\,\bar x$$</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 6 PROBLEMA -->
+<section class="slide" data-title="Ejercicio guiado: enunciado">
+  <div class="kicker">Ejercicio guiado</div>
+  <h2>Rendimiento de un servidor web</h2>
+  <div class="grid2 wide-left">
+    <div class="stack">
+      <div class="card">
+        <p>Un equipo de desarrollo hizo pruebas de carga a una API. Para cada nivel de <b>usuarios concurrentes</b> \(x\) (en cientos) midió el <b>tiempo promedio de respuesta</b> \(y\) (en ms).</p>
+      </div>
+      <div class="card">
+        <table id="tblData"></table>
+      </div>
+      <div class="card indigo frag" data-f="1">
+        <h3>Objetivos</h3>
+        <ul class="clean">
+          <li>Ajustar el modelo \(\hat y=a_0+a_1x\) por mínimos cuadrados.</li>
+          <li>Evaluar la calidad del ajuste (\(R^2\), \(r\), \(S_{y/x}\)).</li>
+          <li>Predecir el tiempo de respuesta con 700 usuarios.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="card"><div class="canvas-wrap"><canvas id="cvData"></canvas></div></div>
+  </div>
+</section>
+
+<!-- 7 PASO 1 -->
+<section class="slide" data-title="Paso 1: tabla de sumas">
+  <div class="kicker"><span class="step-badge">1</span>Paso 1</div>
+  <h2>Construir la tabla de sumas</h2>
+  <div class="grid2 wide-left">
+    <div class="card"><table id="tblSums"></table></div>
+    <div class="stack">
+      <div class="card frag" data-f="1"><p><b>Columna \(x_i^2\):</b> eleva al cuadrado cada \(x_i\).</p></div>
+      <div class="card frag" data-f="2"><p><b>Columna \(x_iy_i\):</b> multiplica cada par.</p></div>
+      <div class="card amber frag" data-f="3"><p><b>Fila Σ:</b> suma cada columna. Son los únicos números que necesitan las fórmulas.</p></div>
+      <div class="card teal frag" data-f="4">
+        <p>Promedios:</p>
+        $$\bar x=\frac{21}{6}=3.5 \qquad \bar y=\frac{1150}{6}\approx 191.667$$
+      </div>
+      <button class="ghost" onclick="next()">Siguiente paso ▸</button>
+    </div>
+  </div>
+</section>
+
+<!-- 8 PASO 2 -->
+<section class="slide" data-title="Paso 2: pendiente a₁">
+  <div class="kicker"><span class="step-badge">2</span>Paso 2</div>
+  <h2>Calcular la pendiente \(a_1\)</h2>
+  <div class="grid2 wide-left">
+    <div class="stack math-big">
+      <div class="card">$$a_1=\frac{n\sum x_iy_i-\sum x_i\sum y_i}{n\sum x_i^2-\left(\sum x_i\right)^2}$$</div>
+      <div class="card frag" data-f="1">$$a_1=\frac{6(4525)-(21)(1150)}{6(91)-(21)^2}$$</div>
+      <div class="card frag" data-f="2">$$a_1=\frac{27150-24150}{546-441}=\frac{3000}{105}$$</div>
+      <div class="card teal frag" data-f="3">$$\boxed{a_1\approx 28.5714\ \text{ms por cada 100 usuarios}}$$</div>
+    </div>
+    <div class="stack">
+      <div class="card indigo frag" data-f="4">
+        <h3>Interpretación</h3>
+        <p>Cada <b>100 usuarios</b> concurrentes adicionales aumentan el tiempo de respuesta en unos <b>28.6 ms</b>.</p>
+      </div>
+      <div class="card rose frag" data-f="4">
+        <h3>Error típico</h3>
+        <p>Confundir \(\left(\sum x_i\right)^2=441\) con \(\sum x_i^2=91\). ¡No son lo mismo!</p>
+      </div>
+      <button class="ghost" onclick="next()">Siguiente paso ▸</button>
+    </div>
+  </div>
+</section>
+
+<!-- 9 PASO 3 -->
+<section class="slide" data-title="Paso 3: intercepto a₀">
+  <div class="kicker"><span class="step-badge">3</span>Paso 3</div>
+  <h2>Calcular el intercepto \(a_0\)</h2>
+  <div class="grid2 wide-left">
+    <div class="stack math-big">
+      <div class="card">$$a_0=\bar y-a_1\,\bar x$$</div>
+      <div class="card frag" data-f="1">$$a_0=191.667-(28.5714)(3.5)$$</div>
+      <div class="card frag" data-f="2">$$a_0=191.667-100.000$$</div>
+      <div class="card teal frag" data-f="3">$$\boxed{a_0\approx 91.667\ \text{ms}}$$</div>
+    </div>
+    <div class="stack">
+      <div class="card indigo frag" data-f="4">
+        <h3>Interpretación</h3>
+        <p>Es la <b>latencia base</b> del servidor: el tiempo de respuesta estimado sin carga (\(x=0\)).</p>
+      </div>
+      <div class="card frag" data-f="4">
+        <h3>Propiedad útil</h3>
+        <p>La recta de mínimos cuadrados <b>siempre pasa por el punto promedio</b> \((\bar x,\bar y)=(3.5,\ 191.667)\).</p>
+      </div>
+      <button class="ghost" onclick="next()">Siguiente paso ▸</button>
+    </div>
+  </div>
+</section>
+
+<!-- 10 PASO 4 MODELO -->
+<section class="slide" data-title="Paso 4: modelo">
+  <div class="kicker"><span class="step-badge">4</span>Paso 4</div>
+  <h2>El modelo ajustado</h2>
+  <div class="grid2 wide-right">
+    <div class="stack">
+      <div class="card teal math-big">$$\hat y = 91.667 + 28.571\,x$$</div>
+      <div class="card frag" data-f="1"><p>Se dibuja la recta sobre los datos.</p></div>
+      <div class="card frag" data-f="2"><p>Se marcan los <b style="color:var(--rose)">residuos</b>: unos quedan por encima y otros por debajo.</p></div>
+      <div class="card amber frag" data-f="3"><p>El punto promedio \((\bar x,\bar y)\) queda <b>exactamente</b> sobre la recta.</p></div>
+      <button class="ghost" onclick="next()">Siguiente paso ▸</button>
+    </div>
+    <div class="card"><div class="canvas-wrap"><canvas id="cvModel"></canvas></div></div>
+  </div>
+</section>
+
+<!-- 11 PASO 5 CALIDAD -->
+<section class="slide" data-title="Paso 5: calidad del ajuste">
+  <div class="kicker"><span class="step-badge">5</span>Paso 5</div>
+  <h2>¿Qué tan bueno es el ajuste?</h2>
+  <div class="grid2">
+    <div class="card"><table id="tblRes"></table></div>
+    <div class="stack">
+      <div class="card frag" data-f="2">
+        $$S_t=\sum(y_i-\bar y)^2\approx 14433.33 \qquad S_r=\sum e_i^2\approx 147.62$$
+        <p class="muted">\(S_t\): variación total de los datos · \(S_r\): variación que el modelo <b>no</b> explica.</p>
+      </div>
+      <div class="card teal frag" data-f="3">
+        $$R^2=\frac{S_t-S_r}{S_t}=\frac{14433.33-147.62}{14433.33}\approx \mathbf{0.9898}$$
+        <p>El modelo explica el <b>≈ 99 %</b> de la variación del tiempo de respuesta.</p>
+      </div>
+      <div class="card indigo frag" data-f="4">
+        $$r=\sqrt{R^2}\approx 0.9949 \qquad S_{y/x}=\sqrt{\frac{S_r}{n-2}}\approx 6.07\ \text{ms}$$
+        <p class="muted">\(S_{y/x}\): error estándar de la estimación (dispersión típica alrededor de la recta).</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 12 PASO 6 PREDICCION -->
+<section class="slide" data-title="Paso 6: predicción">
+  <div class="kicker"><span class="step-badge">6</span>Paso 6</div>
+  <h2>Usar el modelo para predecir</h2>
+  <div class="grid2 wide-right">
+    <div class="stack">
+      <div class="card indigo">
+        <p>¿Tiempo de respuesta con <b>700 usuarios</b> (\(x=7\))?</p>
+        $$\hat y(7)=91.667+28.571(7)\approx \mathbf{291.67\ ms}$$
+      </div>
+      <div class="card">
+        <h3>Prueba otros valores</h3>
+        <div class="slider"><span>\(x\)</span><input type="range" id="sPred" min="0" max="12" step="0.25" value="7"><span id="vPred" class="mono">7</span></div>
+        <div class="big-num" style="margin-top:8px"><span id="predOut">291.67</span> <span style="font-size:.5em" class="muted">ms</span></div>
+        <div id="predWarn" class="feedback"></div>
+      </div>
+      <div class="card amber">
+        <p><b>Interpolar vs extrapolar:</b> los datos van de \(x=1\) a \(x=6\). Predecir fuera de ese rango es <b>extrapolar</b> y el modelo puede dejar de ser válido (por ejemplo, si el servidor se satura).</p>
+      </div>
+    </div>
+    <div class="card"><div class="canvas-wrap"><canvas id="cvPred"></canvas></div></div>
+  </div>
+</section>
+
+<!-- 13 PRACTICA -->
+<section class="slide" data-title="¡Tu turno!">
+  <div class="kicker">Práctica</div>
+  <h2>¡Tu turno! Resuélvelo y verifica</h2>
+  <div class="grid2">
+    <div class="stack">
+      <div class="card">
+        <p>Tiempo de compilación \(y\) (s) según miles de líneas de código \(x\):</p>
+        <table id="tblPractice" style="margin-top:10px"></table>
+      </div>
+      <div class="card indigo">
+        <div class="row"><label style="min-width:60px">\(a_1=\)</label><input class="num" id="inA1" placeholder="pendiente"></div>
+        <div class="row" style="margin-top:8px"><label style="min-width:60px">\(a_0=\)</label><input class="num" id="inA0" placeholder="intercepto"></div>
+        <div class="row" style="margin-top:12px">
+          <button onclick="checkPractice()">Verificar</button>
+          <button class="ghost" onclick="hintPractice()">Pista</button>
+          <button class="ghost" onclick="solvePractice()">Ver solución</button>
+        </div>
+        <div id="practiceFb" class="feedback" style="margin-top:10px"></div>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="card">
+        <h3>Pregunta conceptual 1</h3>
+        <p style="margin-bottom:10px">Si un ajuste da \(R^2=0.20\), significa que…</p>
+        <div data-quiz="b">
+          <button class="opt" data-k="a">a) El 20 % de los puntos está sobre la recta.</button>
+          <button class="opt" data-k="b">b) La recta explica solo el 20 % de la variación de \(y\); el modelo lineal es pobre.</button>
+          <button class="opt" data-k="c">c) La pendiente vale 0.20.</button>
+        </div>
+        <div class="feedback"></div>
+      </div>
+      <div class="card">
+        <h3>Pregunta conceptual 2</h3>
+        <p style="margin-bottom:10px">¿Por qué se minimiza \(\sum e_i^2\) y no \(\sum e_i\)?</p>
+        <div data-quiz="c">
+          <button class="opt" data-k="a">a) Porque es más rápido de calcular a mano.</button>
+          <button class="opt" data-k="b">b) Porque así la recta pasa por todos los puntos.</button>
+          <button class="opt" data-k="c">c) Porque los residuos positivos y negativos se cancelarían.</button>
+        </div>
+        <div class="feedback"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 14 GEOGEBRA -->
+<section class="slide" data-title="Verificación en GeoGebra">
+  <div class="kicker">Herramienta</div>
+  <h2>Verificación en GeoGebra</h2>
+  <div class="grid2 wide-right" style="grid-template-columns:.8fr 1.2fr">
+    <div class="stack" style="overflow-y:auto">
+      <div class="card">
+        <p class="muted" style="margin-bottom:8px">Escribe en la <b>Entrada</b> (Vista Algebraica):</p>
+        <div class="cmd"><span>P = {(1,120),(2,145),(3,185),(4,200),(5,240),(6,260)}</span><button onclick="copyCmd(this)">Copiar</button></div>
+        <div class="cmd frag" data-f="1"><span>f = AjusteLineal(P)</span><button onclick="copyCmd(this)">Copiar</button></div>
+        <div class="cmd frag" data-f="2"><span>r = CoeficienteCorrelación(P)</span><button onclick="copyCmd(this)">Copiar</button></div>
+        <div class="cmd frag" data-f="3"><span>R2 = RCuadrado(P, f)</span><button onclick="copyCmd(this)">Copiar</button></div>
+        <div class="cmd frag" data-f="4"><span>Q = (7, f(7))</span><button onclick="copyCmd(this)">Copiar</button></div>
+        <p class="hint">Nombres en inglés (funcionan en cualquier idioma): <code>FitLine</code>, <code>CorrelationCoefficient</code>, <code>RSquare</code>.</p>
+      </div>
+      <div class="card teal frag" data-f="5">
+        <h3>Alternativa: Hoja de cálculo</h3>
+        <p>Vista → Hoja de cálculo → escribe \(x\) en la columna A y \(y\) en la B → selecciona ambas → <b>Análisis de regresión de dos variables</b> → Modelo: <b>Lineal</b>. Muestra la ecuación, \(R^2\) y los residuos.</p>
+      </div>
+      <div class="row">
+        <button class="teal" onclick="ggbExample()">Cargar ejemplo</button>
+        <button class="ghost" onclick="ggbBlank()">Lienzo en blanco</button>
+        <a class="btn" style="text-decoration:none;background:#fff;color:var(--indigo);border:1.5px solid #cfd3ff" href="https://www.geogebra.org/classic" target="_blank" rel="noopener">Abrir GeoGebra ↗</a>
+      </div>
+    </div>
+    <div class="card" style="padding:10px"><div id="ggb">Cargando GeoGebra…</div></div>
+  </div>
+</section>
+
+<!-- 15 CIERRE -->
+<section class="slide" data-title="Resumen y tarea">
+  <div class="kicker">Cierre</div>
+  <h2>Resumen</h2>
+  <div class="grid2">
+    <div class="stack">
+      <div class="card indigo">
+        <ul class="clean">
+          <li>La regresión busca la recta que <b>minimiza \(\sum e_i^2\)</b>, sin obligarla a pasar por los puntos.</li>
+          <li>Solo se necesitan \(n,\ \sum x,\ \sum y,\ \sum x^2,\ \sum xy\).</li>
+          <li>\(a_1=\dfrac{n\sum xy-\sum x\sum y}{n\sum x^2-(\sum x)^2},\quad a_0=\bar y-a_1\bar x\)</li>
+          <li>\(R^2\) mide qué fracción de la variación explica el modelo.</li>
+          <li>Cuidado al <b>extrapolar</b> fuera del rango de los datos.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="card amber">
+        <h3>Tarea</h3>
+        <ul class="clean">
+          <li>Resolver a mano el ejercicio de la práctica y calcular \(R^2\) y \(S_{y/x}\).</li>
+          <li>Verificarlo en GeoGebra y adjuntar captura de pantalla.</li>
+          <li>Reto: implementar en Python una función <code>regresion_lineal(x, y)</code> que devuelva \(a_0, a_1, R^2\) y compararla con <code>numpy.polyfit(x, y, 1)</code>.</li>
+        </ul>
+      </div>
+      <div class="card teal">
+        <h3>Próxima clase</h3>
+        <p>Regresión <b>no lineal</b> por linealización: modelos exponencial \(y=ae^{bx}\) y potencial \(y=ax^b\).</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<nav class="nav">
+  <div class="title" id="navTitle"></div>
+  <div class="dots" id="dots"></div>
+  <div class="ctrls">
+    <button class="ghost" onclick="prev()">◂</button>
+    <span class="counter" id="counter"></span>
+    <button onclick="next()">▸</button>
+    <button class="ghost" onclick="toggleFS()" title="Pantalla completa">⛶</button>
+  </div>
+</nav>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================= DATOS ================= */
+const X=[1,2,3,4,5,6], Y=[120,145,185,200,240,260];
+function fitLine(x,y){
+  const n=x.length; let sx=0,sy=0,sxx=0,sxy=0;
+  for(let i=0;i<n;i++){sx+=x[i];sy+=y[i];sxx+=x[i]*x[i];sxy+=x[i]*y[i];}
+  const a1=(n*sxy-sx*sy)/(n*sxx-sx*sx), a0=sy/n-a1*sx/n;
+  let st=0,sr=0; const ym=sy/n;
+  for(let i=0;i<n;i++){st+=(y[i]-ym)**2;sr+=(y[i]-a0-a1*x[i])**2;}
+  return {n,sx,sy,sxx,sxy,a0,a1,st,sr,r2:(st-sr)/st,xm:sx/n,ym};
+}
+const FIT=fitLine(X,Y);
+const PX=[2,4,6,8,10], PY=[5,9,12,18,21];
+const PFIT=fitLine(PX,PY);
+const fmt=(v,d=2)=>Number(v).toFixed(d);
+
+/* ================= GRAFICADOR ================= */
+const COLORS={ink:'#1b2340',grid:'#e8eaf4',axis:'#9aa1bd',pt:'#4f46e5',line:'#0d9488',res:'#e11d48',amber:'#d97706'};
+function setupCanvas(cv){
+  const r=cv.getBoundingClientRect(), dpr=window.devicePixelRatio||1;
+  if(r.width<10||r.height<10) return null;
+  cv.width=Math.round(r.width*dpr); cv.height=Math.round(r.height*dpr);
+  const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0);
+  return {ctx,w:r.width,h:r.height};
+}
+function plot(cv,o){
+  const s=setupCanvas(cv); if(!s) return; const {ctx,w,h}=s;
+  const m={l:o.ml??58,r:16,t:16,b:o.mb??46};
+  const W=w-m.l-m.r,H=h-m.t-m.b;
+  const sx=x=>m.l+(x-o.xmin)/(o.xmax-o.xmin)*W, sy=y=>m.t+H-(y-o.ymin)/(o.ymax-o.ymin)*H;
+  ctx.clearRect(0,0,w,h);
+  ctx.font='12px Inter,system-ui,sans-serif'; ctx.fillStyle=COLORS.axis; ctx.strokeStyle=COLORS.grid; ctx.lineWidth=1;
+  for(let x=Math.ceil(o.xmin/o.xstep)*o.xstep;x<=o.xmax+1e-9;x+=o.xstep){
+    ctx.beginPath();ctx.moveTo(sx(x),m.t);ctx.lineTo(sx(x),m.t+H);ctx.stroke();
+    ctx.textAlign='center';ctx.fillText(+x.toFixed(2),sx(x),m.t+H+16);
+  }
+  for(let y=Math.ceil(o.ymin/o.ystep)*o.ystep;y<=o.ymax+1e-9;y+=o.ystep){
+    ctx.beginPath();ctx.moveTo(m.l,sy(y));ctx.lineTo(m.l+W,sy(y));ctx.stroke();
+    ctx.textAlign='right';ctx.fillText(+y.toFixed(2),m.l-8,sy(y)+4);
+  }
+  ctx.strokeStyle=COLORS.axis;ctx.lineWidth=1.5;ctx.strokeRect(m.l,m.t,W,H);
+  ctx.fillStyle=COLORS.ink;ctx.font='600 13px Inter,system-ui,sans-serif';
+  if(o.xlabel){ctx.textAlign='center';ctx.fillText(o.xlabel,m.l+W/2,h-8);}
+  if(o.ylabel){ctx.save();ctx.translate(14,m.t+H/2);ctx.rotate(-Math.PI/2);ctx.textAlign='center';ctx.fillText(o.ylabel,0,0);ctx.restore();}
+  ctx.save();ctx.beginPath();ctx.rect(m.l,m.t,W,H);ctx.clip();
+  const P=o.pts||[];
+  // cuadrados
+  if(o.line&&o.squares){
+    P.forEach(([x,y])=>{const yh=o.line.a0+o.line.a1*x;const side=Math.abs(sy(y)-sy(yh));
+      ctx.fillStyle='rgba(225,29,72,.13)';ctx.strokeStyle='rgba(225,29,72,.5)';ctx.lineWidth=1;
+      const top=Math.min(sy(y),sy(yh));ctx.fillRect(sx(x),top,side,side);ctx.strokeRect(sx(x),top,side,side);});
+  }
+  if(o.curve){ctx.strokeStyle=o.curveColor||COLORS.res;ctx.lineWidth=2.5;ctx.beginPath();
+    for(let i=0;i<=400;i++){const x=o.xmin+(o.xmax-o.xmin)*i/400,y=o.curve(x);i?ctx.lineTo(sx(x),sy(y)):ctx.moveTo(sx(x),sy(y));}ctx.stroke();}
+  if(o.line){
+    ctx.strokeStyle=o.lineColor||COLORS.line;ctx.lineWidth=3;ctx.beginPath();
+    ctx.moveTo(sx(o.xmin),sy(o.line.a0+o.line.a1*o.xmin));ctx.lineTo(sx(o.xmax),sy(o.line.a0+o.line.a1*o.xmax));ctx.stroke();
+    if(o.residuals){ctx.strokeStyle=COLORS.res;ctx.lineWidth=2;ctx.setLineDash([5,4]);
+      P.forEach(([x,y])=>{ctx.beginPath();ctx.moveTo(sx(x),sy(y));ctx.lineTo(sx(x),sy(o.line.a0+o.line.a1*x));ctx.stroke();});ctx.setLineDash([]);
+      if(o.resLabels){ctx.font='600 12px Inter';ctx.fillStyle=COLORS.res;ctx.textAlign='left';
+        P.forEach(([x,y])=>{const yh=o.line.a0+o.line.a1*x;ctx.fillText('e='+fmt(y-yh,1),sx(x)+6,(sy(y)+sy(yh))/2+4);});}
+    }
+  }
+  P.forEach(([x,y])=>{ctx.fillStyle='#fff';ctx.strokeStyle=COLORS.pt;ctx.lineWidth=2.5;ctx.beginPath();ctx.arc(sx(x),sy(y),6,0,7);ctx.fill();ctx.stroke();
+    ctx.fillStyle=COLORS.pt;ctx.beginPath();ctx.arc(sx(x),sy(y),3,0,7);ctx.fill();});
+  (o.marks||[]).forEach(mk=>{ctx.fillStyle=mk.color||COLORS.amber;ctx.beginPath();
+    if(mk.diamond){ctx.moveTo(sx(mk.x),sy(mk.y)-9);ctx.lineTo(sx(mk.x)+9,sy(mk.y));ctx.lineTo(sx(mk.x),sy(mk.y)+9);ctx.lineTo(sx(mk.x)-9,sy(mk.y));ctx.closePath();}
+    else ctx.arc(sx(mk.x),sy(mk.y),8,0,7);
+    ctx.fill();
+    if(mk.guide){ctx.strokeStyle=mk.color||COLORS.amber;ctx.setLineDash([4,4]);ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(sx(mk.x),sy(o.ymin));ctx.lineTo(sx(mk.x),sy(mk.y));ctx.lineTo(sx(o.xmin),sy(mk.y));ctx.stroke();ctx.setLineDash([]);}
+    if(mk.label){ctx.font='700 13px Inter';ctx.fillStyle=mk.color||COLORS.amber;ctx.textAlign='left';ctx.fillText(mk.label,sx(mk.x)+14,sy(mk.y)+(mk.left?26:-10));}});
+  if(o.shade){ctx.fillStyle='rgba(217,119,6,.08)';o.shade.forEach(([a,b])=>ctx.fillRect(sx(a),m.t,sx(b)-sx(a),H));}
+  ctx.restore();
+  if(o.text){ctx.font='700 15px Inter';ctx.fillStyle=o.textColor||COLORS.line;ctx.textAlign='left';ctx.fillText(o.text,m.l+12,m.t+24);}
+}
+const PTS=X.map((x,i)=>[x,Y[i]]);
+const BASE={xmin:0,xmax:7.5,ymin:60,ymax:320,xstep:1,ystep:40,xlabel:'x: usuarios concurrentes (cientos)',ylabel:'y: tiempo de respuesta (ms)',pts:PTS};
+
+/* ========== portada ========== */
+function drawCover(){
+  const pts=[[0.5,1.2],[1.2,2.4],[1.8,2.1],[2.5,3.6],[3.1,3.3],[3.8,4.9],[4.4,4.6],[5.1,6.0],[5.7,5.7],[6.4,7.1]];
+  const f=fitLine(pts.map(p=>p[0]),pts.map(p=>p[1]));
+  plot(document.getElementById('cvCover'),{xmin:0,xmax:7,ymin:0,ymax:8,xstep:1,ystep:2,pts,line:f,residuals:true,squares:true,ml:34,mb:30});
+}
+/* ========== motivacion ========== */
+const MX=[0,1,2,3,4,5,6,7], MY=[3,6.6,5.6,10.6,9.4,14.6,13.2,18];
+let motivState='pts';
+function lagrange(x){let s=0;for(let i=0;i<MX.length;i++){let L=1;for(let j=0;j<MX.length;j++)if(j!==i)L*=(x-MX[j])/(MX[i]-MX[j]);s+=MY[i]*L;}return s;}
+function motivMode(m){motivState=m;drawMotiv();}
+function drawMotiv(){
+  const o={xmin:-0.3,xmax:7.3,ymin:0,ymax:22,xstep:1,ystep:4,pts:MX.map((x,i)=>[x,MY[i]]),xlabel:'x',ylabel:'y'};
+  if(motivState==='interp'){o.curve=lagrange;o.text='Polinomio de grado 7: oscila entre los puntos';o.textColor=COLORS.res;}
+  if(motivState==='fit'){o.line=fitLine(MX,MY);o.text='Recta de mínimos cuadrados: captura la tendencia';}
+  plot(document.getElementById('cvMotiv'),o);
+}
+/* ========== residuo ========== */
+function drawResid(){plot(document.getElementById('cvResid'),{...BASE,line:FIT,residuals:true,resLabels:true});}
+/* ========== interactivo ========== */
+let play={a0:60,a1:35};
+function srOf(a0,a1){return X.reduce((s,x,i)=>s+(Y[i]-a0-a1*x)**2,0);}
+function drawPlay(){
+  document.getElementById('vA0').textContent=fmt(play.a0,1);
+  document.getElementById('vA1').textContent=fmt(play.a1,1);
+  document.getElementById('sA0').value=play.a0;document.getElementById('sA1').value=play.a1;
+  const sr=srOf(play.a0,play.a1);
+  document.getElementById('srVal').textContent=fmt(sr,1);
+  const ratio=FIT.sr/sr; // 1 en el optimo
+  document.getElementById('srMeter').style.width=(Math.max(0,Math.min(1,ratio))**0.35*100)+'%';
+  const msg=document.getElementById('srMsg');
+  if(sr<=FIT.sr*1.02){msg.textContent='¡Mínimo alcanzado! 🎯';msg.style.color='var(--teal)';}
+  else if(sr<=FIT.sr*1.5){msg.textContent='¡Muy cerca!';msg.style.color='var(--amber)';}
+  else if(sr<=FIT.sr*5){msg.textContent='Vas bien…';msg.style.color='var(--amber)';}
+  else {msg.textContent='Sigue ajustando';msg.style.color='var(--rose)';}
+  plot(document.getElementById('cvPlay'),{...BASE,line:play,residuals:true,squares:document.getElementById('chkSq').checked,
+    text:'ŷ = '+fmt(play.a0,1)+' + '+fmt(play.a1,1)+'x',textColor:COLORS.line});
+}
+function animateToOptimum(){
+  const s={...play},t0=performance.now(),D=900;
+  (function step(t){const k=Math.min(1,(t-t0)/D),e=1-(1-k)**3;
+    play.a0=s.a0+(FIT.a0-s.a0)*e;play.a1=s.a1+(FIT.a1-s.a1)*e;drawPlay();if(k<1)requestAnimationFrame(step);})(t0);
+}
+function resetPlay(){play={a0:60,a1:35};drawPlay();}
+/* ========== tablas ========== */
+function buildTables(){
+  let h='<tr><th>x (cientos)</th>'+X.map(x=>`<td>${x}</td>`).join('')+'</tr><tr><th>y (ms)</th>'+Y.map(y=>`<td>${y}</td>`).join('')+'</tr>';
+  document.getElementById('tblData').innerHTML=h.replace(/<tr><th>/g,'<tr><th style="border-radius:8px 0 0 8px">');
+  let t='<tr><th>i</th><th>x<sub>i</sub></th><th>y<sub>i</sub></th><th class="frag" data-f="1">x<sub>i</sub>²</th><th class="frag" data-f="2">x<sub>i</sub>y<sub>i</sub></th></tr>';
+  X.forEach((x,i)=>{t+=`<tr><td>${i+1}</td><td>${x}</td><td>${Y[i]}</td><td class="frag" data-f="1">${x*x}</td><td class="frag" data-f="2">${x*Y[i]}</td></tr>`;});
+  t+=`<tr class="sum"><td class="frag" data-f="3">Σ</td><td class="frag" data-f="3">${FIT.sx}</td><td class="frag" data-f="3">${FIT.sy}</td><td class="frag" data-f="3">${FIT.sxx}</td><td class="frag" data-f="3">${FIT.sxy}</td></tr>`;
+  document.getElementById('tblSums').innerHTML=t;
+  let r='<tr><th>x<sub>i</sub></th><th>y<sub>i</sub></th><th class="frag" data-f="1">ŷ<sub>i</sub></th><th class="frag" data-f="1">e<sub>i</sub></th><th class="frag" data-f="1">e<sub>i</sub>²</th><th class="frag" data-f="2">(y<sub>i</sub>−ȳ)²</th></tr>';
+  X.forEach((x,i)=>{const yh=FIT.a0+FIT.a1*x,e=Y[i]-yh;
+    r+=`<tr><td>${x}</td><td>${Y[i]}</td><td class="frag" data-f="1">${fmt(yh)}</td><td class="frag" data-f="1" style="color:${e<0?'var(--rose)':'var(--teal)'}">${fmt(e)}</td><td class="frag" data-f="1">${fmt(e*e)}</td><td class="frag" data-f="2">${fmt((Y[i]-FIT.ym)**2)}</td></tr>`;});
+  r+=`<tr class="sum"><td>Σ</td><td>${FIT.sy}</td><td class="frag" data-f="1">${fmt(FIT.sy)}</td><td class="frag" data-f="1">≈ 0</td><td class="frag" data-f="2">${fmt(FIT.sr)}</td><td class="frag" data-f="2">${fmt(FIT.st)}</td></tr>`;
+  document.getElementById('tblRes').innerHTML=r;
+  document.getElementById('tblPractice').innerHTML='<tr><th>x (miles LOC)</th>'+PX.map(x=>`<td>${x}</td>`).join('')+'</tr><tr><th>y (s)</th>'+PY.map(y=>`<td>${y}</td>`).join('')+'</tr>';
+}
+/* ========== datos / modelo / prediccion ========== */
+function drawData(){plot(document.getElementById('cvData'),{...BASE});}
+function drawModel(rev){
+  const o={...BASE};
+  if(rev>=1){o.line=FIT;o.text='ŷ = 91.667 + 28.571x';}
+  if(rev>=2){o.residuals=true;o.resLabels=true;}
+  if(rev>=3){o.marks=[{x:FIT.xm,y:FIT.ym,diamond:true,left:true,label:'(x̄, ȳ) = (3.5, 191.67)',color:COLORS.amber}];}
+  plot(document.getElementById('cvModel'),o);
+}
+function drawPred(){
+  const x=+document.getElementById('sPred').value,y=FIT.a0+FIT.a1*x;
+  document.getElementById('vPred').textContent=x;document.getElementById('predOut').textContent=fmt(y);
+  const w=document.getElementById('predWarn');
+  if(x<1||x>6){w.textContent='⚠ Extrapolación: fuera del rango de los datos (1 a 6)';w.className='feedback bad';}
+  else {w.textContent='✔ Interpolación: dentro del rango de los datos';w.className='feedback ok';}
+  plot(document.getElementById('cvPred'),{...BASE,xmax:12.5,ymax:480,ystep:60,line:FIT,shade:[[1,6]],
+    marks:[{x,y,guide:true,label:`ŷ(${x}) = ${fmt(y)} ms`,color:(x<1||x>6)?COLORS.res:COLORS.amber}]});
+}
+/* ========== practica ========== */
+function checkPractice(){
+  const a1=parseFloat(document.getElementById('inA1').value.replace(',','.')),a0=parseFloat(document.getElementById('inA0').value.replace(',','.'));
+  const fb=document.getElementById('practiceFb');
+  if(isNaN(a1)||isNaN(a0)){fb.textContent='Escribe ambos valores.';fb.className='feedback bad';return;}
+  const ok1=Math.abs(a1-PFIT.a1)<0.011,ok0=Math.abs(a0-PFIT.a0)<0.011;
+  if(ok1&&ok0){fb.textContent='¡Correcto! 🎉  ŷ = '+fmt(PFIT.a0)+' + '+fmt(PFIT.a1)+'x';fb.className='feedback ok';confetti();}
+  else{fb.textContent=(ok1?'a₁ correcto ✔. ':'a₁ incorrecto ✘. ')+(ok0?'a₀ correcto ✔':'a₀ incorrecto ✘ (recuerda a₀ = ȳ − a₁x̄)');fb.className='feedback bad';}
+}
+function hintPractice(){const fb=document.getElementById('practiceFb');
+  fb.innerHTML=`n = 5, Σx = ${PFIT.sx}, Σy = ${PFIT.sy}, Σx² = ${PFIT.sxx}, Σxy = ${PFIT.sxy}`;fb.className='feedback';}
+function solvePractice(){const fb=document.getElementById('practiceFb');
+  fb.innerHTML=`a₁ = (5·472 − 30·65)/(5·220 − 30²) = 410/200 = <b>2.05</b> · a₀ = 13 − 2.05·6 = <b>0.70</b> · R² ≈ ${fmt(PFIT.r2,4)}`;fb.className='feedback ok';}
+document.querySelectorAll('[data-quiz]').forEach(q=>{
+  q.querySelectorAll('.opt').forEach(b=>b.addEventListener('click',()=>{
+    const good=b.dataset.k===q.dataset.quiz,fb=q.nextElementSibling;
+    q.querySelectorAll('.opt').forEach(x=>x.classList.remove('ok','bad'));
+    b.classList.add(good?'ok':'bad');
+    fb.textContent=good?'¡Exacto!':'Revisa de nuevo…';fb.className='feedback '+(good?'ok':'bad');
+  }));
+});
+function confetti(){
+  const c=document.createElement('canvas');c.style.cssText='position:fixed;inset:0;pointer-events:none;z-index:80;width:100vw;height:100vh';document.body.appendChild(c);
+  c.width=innerWidth;c.height=innerHeight;const ctx=c.getContext('2d');const cols=['#4f46e5','#0d9488','#d97706','#e11d48'];
+  const ps=Array.from({length:120},()=>({x:innerWidth/2,y:innerHeight/2,vx:(Math.random()-.5)*14,vy:Math.random()*-14-4,c:cols[Math.random()*4|0],s:4+Math.random()*5}));
+  let f=0;(function an(){ctx.clearRect(0,0,c.width,c.height);ps.forEach(p=>{p.vy+=.45;p.x+=p.vx;p.y+=p.vy;ctx.fillStyle=p.c;ctx.fillRect(p.x,p.y,p.s,p.s);});
+    if(++f<110)requestAnimationFrame(an);else c.remove();})();
+}
+/* ========== GeoGebra ========== */
+let ggbApi=null,ggbRequested=false;
+function loadGGB(){
+  if(ggbRequested) return; ggbRequested=true;
+  const s=document.createElement('script');s.src='https://www.geogebra.org/apps/deployggb.js';
+  s.onload=()=>{const el=document.getElementById('ggb');el.textContent='';
+    const app=new GGBApplet({appName:'classic',width:Math.max(400,el.clientWidth),height:Math.max(380,el.clientHeight),
+      perspective:'AG',showToolBar:true,showAlgebraInput:true,showMenuBar:false,showResetIcon:false,enableShiftDragZoom:true,
+      language:'es',appletOnLoad:api=>{ggbApi=api;ggbExample();}},true);
+    app.inject('ggb');};
+  s.onerror=()=>{document.getElementById('ggb').innerHTML='<div style="padding:20px;text-align:center">No se pudo cargar GeoGebra (¿sin conexión?).<br>Usa el botón <b>Abrir GeoGebra ↗</b>.</div>';};
+  document.head.appendChild(s);
+}
+function ggbExample(){
+  if(!ggbApi){toast('GeoGebra aún está cargando…');return;}
+  ggbApi.newConstruction();
+  ['P={(1,120),(2,145),(3,185),(4,200),(5,240),(6,260)}','f=FitLine(P)','r=CorrelationCoefficient(P)','R2=RSquare(P,f)','Q=(7,f(7))']
+    .forEach(c=>ggbApi.evalCommand(c));
+  try{ggbApi.setColor('f',13,148,136);ggbApi.setLineThickness('f',7);ggbApi.setColor('Q',217,119,6);ggbApi.setPointSize('Q',6);ggbApi.setColor('P',79,70,229);}catch(e){}
+  ggbApi.setCoordSystem(-0.5,8,-20,330);
+}
+function ggbBlank(){if(!ggbApi){toast('GeoGebra aún está cargando…');return;}ggbApi.newConstruction();ggbApi.setCoordSystem(-0.5,8,-20,330);}
+function copyCmd(b){const t=b.previousElementSibling.textContent;
+  (navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>toast('Copiado: '+t)).catch(()=>toast(t));}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),1800);}
+
+/* ================= NAVEGACION ================= */
+buildTables();
+const slides=[...document.querySelectorAll('.slide')];
+const rev=slides.map(()=>0);
+let cur=0;
+const groups=s=>[...new Set([...s.querySelectorAll('[data-f]')].map(e=>+e.dataset.f))].sort((a,b)=>a-b);
+const RENDER={
+  'Portada':drawCover,'¿Interpolar o ajustar?':drawMotiv,'El residuo':drawResid,'Ajusta tú la recta':drawPlay,
+  'Ejercicio guiado: enunciado':drawData,'Paso 4: modelo':()=>drawModel(rev[cur]),'Paso 6: predicción':drawPred,
+  'Verificación en GeoGebra':loadGGB
+};
+function render(){const f=RENDER[slides[cur].dataset.title];if(f)f();}
+function applyFrags(i){const g=groups(slides[i]);slides[i].querySelectorAll('[data-f]').forEach(e=>e.classList.toggle('shown',g.indexOf(+e.dataset.f)<rev[i]));}
+function goTo(i){
+  if(i<0||i>=slides.length) return;
+  cur=i;
+  slides.forEach((s,k)=>{s.classList.toggle('active',k===i);s.classList.toggle('before',k<i);});
+  applyFrags(i);
+  document.getElementById('counter').textContent=(i+1)+' / '+slides.length;
+  document.getElementById('navTitle').textContent=slides[i].dataset.title;
+  document.getElementById('progress').style.width=((i+1)/slides.length*100)+'%';
+  document.querySelectorAll('#dots span').forEach((d,k)=>d.classList.toggle('on',k===i));
+  history.replaceState(null,'','#'+(i+1));
+  requestAnimationFrame(()=>requestAnimationFrame(render));
+}
+function next(){const g=groups(slides[cur]);if(rev[cur]<g.length){rev[cur]++;applyFrags(cur);render();}else goTo(cur+1);}
+function prev(){if(rev[cur]>0){rev[cur]--;applyFrags(cur);render();}else goTo(cur-1);}
+function toggleFS(){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen().catch(()=>{});}
+const dots=document.getElementById('dots');
+slides.forEach((s,k)=>{const d=document.createElement('span');d.title=s.dataset.title;d.onclick=()=>goTo(k);dots.appendChild(d);});
+document.addEventListener('keydown',e=>{
+  const tag=(e.target.tagName||'').toLowerCase();
+  if(tag==='input'||tag==='textarea'||e.target.closest&&e.target.closest('#ggb')) return;
+  if(['ArrowRight','PageDown',' '].includes(e.key)){e.preventDefault();next();}
+  else if(['ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();prev();}
+  else if(e.key==='Home')goTo(0); else if(e.key==='End')goTo(slides.length-1);
+  else if(e.key==='f'||e.key==='F')toggleFS();
+});
+let tx=null;document.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;},{passive:true});
+document.addEventListener('touchend',e=>{if(tx===null)return;const dx=e.changedTouches[0].clientX-tx;
+  if(!e.target.closest('input,#ggb,canvas')){if(dx<-60)next();else if(dx>60)prev();}tx=null;});
+['sA0','sA1'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{play.a0=+document.getElementById('sA0').value;play.a1=+document.getElementById('sA1').value;drawPlay();}));
+document.getElementById('chkSq').addEventListener('change',drawPlay);
+document.getElementById('sPred').addEventListener('input',drawPred);
+let rz;window.addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(render,120);});
+window.addEventListener('load',()=>{
+  if(window.renderMathInElement) renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false});
+  render();
+});
+const start=parseInt(location.hash.slice(1));goTo(isNaN(start)?0:Math.min(slides.length,Math.max(1,start))-1);
+</script>
+</body>
+</html>

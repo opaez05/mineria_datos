@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GEO-EPIDEMIA 3D — Monitoreo y Simulación Predictiva de Desabastecimiento en Colombia</title>
+
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!-- MapLibre GL CSS & JS (Motor base de mapas vectoriales libres) -->
+    <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
+    <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+
+    <!-- Deck.gl v8.9+ (Motor WebGL 3D de alta densidad) -->
+    <script src="https://unpkg.com/deck.gl@8.9.33/dist.min.js"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Estilos de la aplicación -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Pantalla de carga cinematográfica -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loading-card">
+            <div class="loading-radar">
+                <span class="radar-ping"></span>
+                <span class="radar-ping delay"></span>
+                <i data-lucide="globe" class="loading-icon"></i>
+            </div>
+            <h2>GEO-EPIDEMIA 3D · COLOMBIA</h2>
+            <p id="loading-status">Inicializando motor WebGL 3D y pipeline CRISP-DM...</p>
+        </div>
+    </div>
+
+    <div id="app-container">
+        <!-- Canvas para el mapa 3D -->
+        <div id="map-container"></div>
+
+        <!-- Botón flotante para salir de Modo Cine / Zen (tecla H) -->
+        <button id="btn-exit-zen" class="btn-exit-zen hidden" title="Mostrar controles HUD (Tecla H)">
+            <i data-lucide="eye"></i> <span>Mostrar HUD (H)</span>
+        </button>
+
+        <!-- Capa HUD sin colisiones (Flexbox por zonas) -->
+        <div class="hud-overlay">
+            <!-- Backdrop móvil dentro del mismo stacking context del HUD (detrás de drawers z:55 y sheet z:65) -->
+            <div id="mobile-backdrop" class="mobile-backdrop hidden"></div>
+
+            <!-- Banner Narrativo del Tour Guiado ("Modo Jurado") -->
+            <div id="story-banner" class="story-banner glass-panel hidden">
+                <div class="story-badge-col">
+                    <span id="story-step-tag" class="story-step-tag">ESCENA 1</span>
+                </div>
+                <div class="story-text-col">
+                    <h3 id="story-title">Brote Crítico Histórico · Tolima 2019</h3>
+                    <p id="story-desc">Descripción narrativa de la escena activa para el jurado.</p>
+                </div>
+                <button type="button" id="btn-close-story" class="btn-story-close" title="Cerrar tarjeta narrativa">&times;</button>
+            </div>
+
+            <!-- ZONA SUPERIOR: Header compacto y responsivo -->
+            <header class="hud-header glass-panel">
+                <div class="brand">
+                    <div class="logo-radar">
+                        <span class="radar-ping"></span>
+                        <i data-lucide="activity" class="icon-brand"></i>
+                    </div>
+                    <div class="brand-text">
+                        <h1 class="brand-title">GEO-EPIDEMIA 3D <span class="badge-ai">CRISP-DM</span></h1>
+                        <p class="brand-sub">Vigilancia Epidemiológica &amp; Desabastecimiento Farmacéutico · Colombia</p>
+                    </div>
+                </div>
+
+                <!-- Controles de filtro y salto rápido -->
+                <div class="header-filters">
+                    <div class="selector-container">
+                        <label for="select-evento" title="Filtrar patología"><i data-lucide="filter"></i> <span>Patología:</span></label>
+                        <select id="select-evento" class="glass-input">
+                            <!-- Opciones inyectadas por JS -->
+                        </select>
+                    </div>
+
+                    <div class="selector-container jump-container">
+                        <label for="select-depto-jump" title="Volar a un departamento"><i data-lucide="search"></i></label>
+                        <select id="select-depto-jump" class="glass-input glass-input-jump">
+                            <option value="">Ir a departamento...</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Indicadores Globales KPI en Tiempo Real -->
+                <div class="kpi-group">
+                    <div class="kpi-card">
+                        <span class="kpi-label">Casos Mes</span>
+                        <div class="kpi-val-row">
+                            <span id="kpi-casos" class="kpi-val text-cyan">0</span>
+                            <span id="kpi-casos-delta" class="kpi-delta hidden"></span>
+                        </div>
+                    </div>
+                    <div class="kpi-card kpi-hide-mobile">
+                        <span class="kpi-label">Medicamentos</span>
+                        <span id="kpi-meds" class="kpi-val text-blue">0</span>
+                    </div>
+                    <div class="kpi-card">
+                        <span class="kpi-label">Críticos</span>
+                        <span id="kpi-criticos" class="kpi-val text-red">0</span>
+                    </div>
+                    <div class="kpi-card">
+                        <span class="kpi-label">Alertas</span>
+                        <span id="kpi-alertas" class="kpi-val text-amber">0</span>
+                    </div>
+                </div>
+
+                <!-- Acciones de Exposición + Botón ADN CRISP-DM + Logo UNIMINUTO -->
+                <div class="header-actions">
+                    <button type="button" id="btn-open-crispdm" class="btn-crispdm-pill" title="Ver Auditoría Completa del Pipeline CRISP-DM y Modelos ML (Tecla C)">
+                        <i data-lucide="dna"></i> <span>ADN CRISP-DM</span>
+                    </button>
+                    <button type="button" id="btn-zen-mode" class="btn-icon-hdr hide-on-mobile" title="Modo Cine / Ocultar HUD (Tecla H)">
+                        <i data-lucide="eye-off"></i>
+                    </button>
+                    <button type="button" id="btn-fullscreen" class="btn-icon-hdr" title="Pantalla Completa (Tecla F)">
+                        <i data-lucide="maximize"></i>
+                    </button>
+                    <button type="button" id="btn-shortcuts" class="btn-icon-hdr hide-on-mobile" title="Atajos de teclado para sustentación">
+                        <i data-lucide="keyboard"></i>
+                    </button>
+                    <div class="uni-badge" title="UNIMINUTO · Minería de Datos">
+                        <img src="../img/logo_uniminuto.svg" alt="UNIMINUTO">
+                    </div>
+                </div>
+            </header>
+
+            <!-- ZONA CENTRAL: Columnas laterales independientes -->
+            <div class="hud-middle">
+                <!-- Columna Izquierda: Tour del Jurado + Top 5 Críticos + Inspector Departamental -->
+                <div id="hud-left-col" class="hud-left">
+                    <div class="mobile-drawer-head">
+                        <span><i data-lucide="compass"></i> Tour del Jurado &amp; Ranking</span>
+                        <button type="button" class="btn-drawer-close" data-close-drawer="left">&times;</button>
+                    </div>
+
+                    <!-- Tour Guiado Cinematográfico ("Modo Jurado") -->
+                    <section id="tour-panel" class="glass-panel side-widget">
+                        <button type="button" class="widget-header" data-collapse="tour-panel">
+                            <span class="widget-title"><i data-lucide="clapperboard"></i> Tour del Jurado (1-4)</span>
+                            <i data-lucide="chevron-down" class="widget-chevron"></i>
+                        </button>
+                        <div class="widget-body">
+                            <div class="tour-grid">
+                                <button type="button" class="btn-tour" data-scene="brote2019" title="Tecla 1: Volar al brote histórico de Tolima/Meta 2019">
+                                    <span class="tour-num">1</span>
+                                    <span class="tour-lbl">Brote 2019</span>
+                                </button>
+                                <button type="button" class="btn-tour" data-scene="proyeccion2027" title="Tecla 2: Proyección Machine Learning 2027">
+                                    <span class="tour-num">2</span>
+                                    <span class="tour-lbl">IA 2027</span>
+                                </button>
+                                <button type="button" class="btn-tour" data-scene="elnino" title="Tecla 3: Simulación Crisis Fenómeno del Niño">
+                                    <span class="tour-num">3</span>
+                                    <span class="tour-lbl">El Niño</span>
+                                </button>
+                                <button type="button" class="btn-tour" data-scene="logistica" title="Tecla 4: Red Nacional de Despacho Farmacéutico">
+                                    <span class="tour-num">4</span>
+                                    <span class="tour-lbl">Logística</span>
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Top 5 Departamentos Críticos en Vivo -->
+                    <section id="ranking-panel" class="glass-panel side-widget">
+                        <button type="button" class="widget-header" data-collapse="ranking-panel">
+                            <span class="widget-title"><i data-lucide="flame"></i> Top 5 Presión Crítica</span>
+                            <i data-lucide="chevron-down" class="widget-chevron"></i>
+                        </button>
+                        <div class="widget-body">
+                            <div id="ranking-list" class="ranking-list">
+                                <!-- Inyectado dinámicamente por JS -->
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Inspector Departamental Detallado (Bottom-Sheet nativo en móviles) -->
+                    <aside id="inspector-card" class="glass-panel inspector-panel hidden">
+                        <div class="sheet-drag-handle" aria-hidden="true"><span></span></div>
+                        <button type="button" id="btn-close-inspector" class="btn-close" title="Cerrar inspector (Esc)">&times;</button>
+                        <div class="inspector-header">
+                            <div class="inspector-badges-row">
+                                <span id="ins-badge" class="badge-status status-critico">CRÍTICO</span>
+                                <span id="ins-sim-delta" class="badge-sim-delta hidden"></span>
+                            </div>
+                            <div class="ins-title-row">
+                                <h2 id="ins-depto">ANTIOQUIA</h2>
+                                <button type="button" id="btn-ins-fly" class="btn-ins-fly" title="Acercar cámara 3D a este departamento">
+                                    <i data-lucide="crosshair"></i>
+                                </button>
+                            </div>
+                            <p id="ins-capital" class="ins-capital-text"><i data-lucide="map-pin"></i> Medellín</p>
+                        </div>
+
+                        <div class="inspector-stats-grid">
+                            <div class="ins-stat-box">
+                                <span class="ins-label">Casos Mes</span>
+                                <span id="ins-casos" class="ins-val text-cyan">0</span>
+                            </div>
+                            <div class="ins-stat-box">
+                                <span class="ins-label">Stock Meds</span>
+                                <span id="ins-meds" class="ins-val">0</span>
+                            </div>
+                            <div class="ins-stat-box">
+                                <span class="ins-label">Demanda Est.</span>
+                                <span id="ins-demanda" class="ins-val text-amber">0</span>
+                            </div>
+                            <div class="ins-stat-box">
+                                <span class="ins-label">Tensión Farm.</span>
+                                <span id="ins-tension" class="ins-val text-red">0%</span>
+                            </div>
+                        </div>
+
+                        <!-- Gráfica Sparkline Interactiva 2017 - 2027 -->
+                        <div class="inspector-spark-box">
+                            <div class="spark-head">
+                                <h4><i data-lucide="trending-up"></i> Curva 2017–2027 (Clic = viajar)</h4>
+                                <span id="ins-spark-peak" class="spark-peak-tag">Pico: --</span>
+                            </div>
+                            <div id="ins-sparkline" class="sparkline-canvas"></div>
+                            <div class="spark-legend">
+                                <span><i class="dot-real"></i> Histórico SIVIGILA</span>
+                                <span><i class="dot-ia"></i> Proyección IA 2025-27</span>
+                            </div>
+                        </div>
+
+                        <!-- Explicabilidad IA (CRISP-DM) -->
+                        <div class="inspector-ml-box">
+                            <h4><i data-lucide="brain-circuit"></i> Explicabilidad IA (CRISP-DM)</h4>
+                            <ul id="ins-ml-reasons" class="ml-reasons-list">
+                                <!-- Inyectado por JS -->
+                            </ul>
+                        </div>
+
+                        <div class="inspector-climate-box">
+                            <h4><i data-lucide="cloud-sun"></i> Variables Meteorológicas (IDEAM)</h4>
+                            <div class="climate-values">
+                                <div><span class="label">Temp:</span> <strong id="ins-temp">-- °C</strong></div>
+                                <div><span class="label">Lluvia:</span> <strong id="ins-lluvia">-- mm</strong></div>
+                                <div><span class="label">Hum:</span> <strong id="ins-hum">-- %</strong></div>
+                            </div>
+                            <div class="ins-climate-actions">
+                                <button type="button" id="btn-ins-nube" class="btn-ins-sim btn-ins-rain" title="Soltar nube de tormenta sobre este departamento">
+                                    <i data-lucide="cloud-rain"></i> Tormenta
+                                </button>
+                                <button type="button" id="btn-ins-sol" class="btn-ins-sim btn-ins-sun" title="Simular ola de calor solar sobre este departamento">
+                                    <i data-lucide="sun"></i> Ola Calor
+                                </button>
+                                <button type="button" id="btn-ins-clear" class="btn-ins-sim btn-ins-clear hidden" title="Quitar simulación de este departamento">
+                                    <i data-lucide="rotate-ccw"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="inspector-logistics-box">
+                            <h4><i data-lucide="truck"></i> Estrategia de Mitigación</h4>
+                            <p id="ins-logistics-desc" class="ins-logistics-text">Abastecimiento de contingencia recomendado.</p>
+                        </div>
+                    </aside>
+                </div>
+
+                <!-- Columna Derecha: Controles de Cámara + Simulador Climático + Leyenda 3D -->
+                <div id="hud-right-col" class="hud-right">
+                    <div class="mobile-drawer-head">
+                        <span><i data-lucide="sliders-horizontal"></i> Cámara 3D &amp; Simulador</span>
+                        <button type="button" class="btn-drawer-close" data-close-drawer="right">&times;</button>
+                    </div>
+
+                    <div class="camera-controls glass-panel">
+                        <div class="cam-grid">
+                            <button type="button" id="btn-pitch-3d" class="btn-tool active" title="Alternar Vista Inclinada 3D">
+                                <i data-lucide="box"></i> 3D Pitch
+                            </button>
+                            <button type="button" id="btn-auto-rotate" class="btn-tool" title="Rotación Cinematográfica (Tecla R)">
+                                <i data-lucide="orbit"></i> Rotar
+                            </button>
+                            <button type="button" id="btn-toggle-poligonos" class="btn-tool active" title="Alternar Departamentos 3D">
+                                <i data-lucide="map"></i> Deptos 3D
+                            </button>
+                            <button type="button" id="btn-toggle-arcos" class="btn-tool active" title="Alternar Arcos Logísticos">
+                                <i data-lucide="git-branch"></i> Despacho
+                            </button>
+                        </div>
+                        <button type="button" id="btn-reset-cam" class="btn-tool btn-tool-full" title="Restablecer Cámara sobre Colombia">
+                            <i data-lucide="maximize-2"></i> Centrar Colombia 3D
+                        </button>
+                    </div>
+
+                    <!-- Simulador Climático 3D (What-If en Vivo) -->
+                    <div id="climate-sim-panel" class="climate-sim-panel glass-panel">
+                        <div class="sim-header">
+                            <span class="sim-title"><i data-lucide="cloud-lightning"></i> Simulador Clima 3D</span>
+                            <button type="button" id="btn-reset-climate" class="btn-sim-reset hidden" title="Restaurar clima original">
+                                <i data-lucide="rotate-ccw"></i> Reset
+                            </button>
+                        </div>
+
+                        <!-- Macro-Escenarios Nacionales 1 Clic -->
+                        <div class="macro-scenarios-row">
+                            <button type="button" id="btn-macro-nino" class="btn-macro macro-nino" title="Simular Fenómeno del Niño (ola de calor nacional)">
+                                <i data-lucide="sun"></i> El Niño
+                            </button>
+                            <button type="button" id="btn-macro-nina" class="btn-macro macro-nina" title="Simular Fenómeno de La Niña (lluvias extremas)">
+                                <i data-lucide="cloud-rain"></i> La Niña
+                            </button>
+                        </div>
+
+                        <div class="sim-tools-grid">
+                            <button type="button" id="tool-cursor" class="btn-sim-tool active" data-tool="cursor" title="Modo normal: inspeccionar departamento">
+                                <i data-lucide="mouse-pointer"></i> Ver
+                            </button>
+                            <button type="button" id="tool-nube" class="btn-sim-tool tool-rain" data-tool="nube" title="Clic en un departamento para soltar nube de lluvia 3D">
+                                <i data-lucide="cloud-rain"></i> Nube
+                            </button>
+                            <button type="button" id="tool-sol" class="btn-sim-tool tool-sun" data-tool="sol" title="Clic en un departamento para simular ola de calor 3D">
+                                <i data-lucide="sun"></i> Sol
+                            </button>
+                        </div>
+
+                        <div class="sim-intensity-row">
+                            <span class="sim-label">Intensidad:</span>
+                            <div class="sim-intensity-pills">
+                                <button type="button" class="btn-intensity" data-level="1">1x</button>
+                                <button type="button" class="btn-intensity active" data-level="2">2x</button>
+                                <button type="button" class="btn-intensity" data-level="3">3x</button>
+                            </div>
+                        </div>
+
+                        <div id="sim-corr-badge" class="sim-corr-badge">
+                            Correlación ML: Temp +0.15 | Lluvia -0.15
+                        </div>
+
+                        <div id="sim-active-status" class="sim-active-status">
+                            Elige un Macro-Escenario o Nube/Sol y haz clic en el mapa
+                        </div>
+                    </div>
+
+                    <!-- Leyenda 3D Colapsable -->
+                    <div id="legend-panel" class="legend-panel glass-panel">
+                        <button type="button" id="btn-toggle-legend" class="legend-header" title="Colapsar o expandir leyenda">
+                            <span class="legend-title"><i data-lucide="layers"></i> Capas &amp; Semáforo 3D</span>
+                            <i data-lucide="chevron-down" class="legend-chevron"></i>
+                        </button>
+                        <div class="legend-body">
+                            <div class="legend-item">
+                                <span class="legend-color color-critico"></span>
+                                <span>Crítico (Déficit &gt; 120% · Radar)</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color color-alerta"></span>
+                                <span>Alerta (Tensión &gt; 60%)</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-color color-estable"></span>
+                                <span>Estable / Abastecido</span>
+                            </div>
+                            <div class="legend-divider"></div>
+                            <div class="legend-item">
+                                <span class="legend-line line-red"></span>
+                                <span>Arco 3D + Pulso de Despacho</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-hub"></span>
+                                <span>Hub Farmacéutico Nacional</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-cube"></span>
+                                <span>Altura = Incidencia Casos</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ZONA INFERIOR: Línea de Tiempo + Dock Nativo Móvil -->
+            <footer class="hud-timeline glass-panel">
+                <div class="timeline-controls">
+                    <button type="button" id="btn-prev" class="btn-media" title="Mes Anterior (←)"><i data-lucide="skip-back"></i></button>
+                    <button type="button" id="btn-play" class="btn-media btn-play-main" title="Reproducir / Pausar (Espacio)"><i data-lucide="play"></i></button>
+                    <button type="button" id="btn-next" class="btn-media" title="Siguiente Mes (→)"><i data-lucide="skip-forward"></i></button>
+
+                    <div class="speed-toggle-group">
+                        <button type="button" class="btn-speed active" data-speed="1">1x</button>
+                        <button type="button" class="btn-speed" data-speed="2">2x</button>
+                        <button type="button" class="btn-speed" data-speed="3">4x</button>
+                    </div>
+
+                    <div class="timeline-display">
+                        <span id="timeline-periodo-tag" class="periodo-badge">2017-01</span>
+                        <span id="timeline-tipo-tag" class="tipo-badge badge-real">HISTÓRICO REAL</span>
+                    </div>
+                </div>
+
+                <!-- Slider interactivo -->
+                <div class="slider-wrapper">
+                    <input type="range" id="timeline-slider" min="0" max="83" value="0" step="1">
+                    <div class="slider-markers">
+                        <span class="marker marker-2017">2017</span>
+                        <span class="marker marker-2019">2019</span>
+                        <span class="marker marker-2021">2021</span>
+                        <span class="marker marker-ai"><i data-lucide="sparkles"></i> 2025 (IA)</span>
+                        <span class="marker marker-2027">2027</span>
+                    </div>
+                </div>
+
+                <!-- Dock Nativo Móvil (solo visible en pantallas <= 960px) -->
+                <nav class="mobile-native-dock" aria-label="Navegación móvil">
+                    <button type="button" id="dock-tour" class="dock-btn">
+                        <i data-lucide="clapperboard"></i><span>Tour</span>
+                    </button>
+                    <button type="button" id="dock-ranking" class="dock-btn">
+                        <i data-lucide="flame"></i><span>Top 5</span>
+                    </button>
+                    <button type="button" id="dock-clima" class="dock-btn">
+                        <i data-lucide="cloud-lightning"></i><span>Clima 3D</span>
+                    </button>
+                    <button type="button" id="dock-crispdm" class="dock-btn dock-accent">
+                        <i data-lucide="dna"></i><span>CRISP-DM</span>
+                    </button>
+                </nav>
+            </footer>
+        </div>
+    </div>
+
+    <!-- ======================================================================
+         MODAL INTERACTIVO "ADN CRISP-DM" (Auditoría Completa del Pipeline)
+         ====================================================================== -->
+    <div id="crispdm-modal" class="crispdm-modal hidden" role="dialog" aria-modal="true" aria-label="ADN CRISP-DM del Proyecto">
+        <div class="crispdm-shell glass-panel">
+            <div class="crispdm-head">
+                <div class="crispdm-title-group">
+                    <span class="crispdm-kicker"><i data-lucide="dna"></i> AUDITORÍA METODOLÓGICA EN VIVO</span>
+                    <h2>ADN CRISP-DM · De 5.95M Registros Crudos al Motor Predictivo 3D</h2>
+                </div>
+                <button type="button" id="btn-close-crispdm" class="btn-close-modal" title="Cerrar (Esc)">&times;</button>
+            </div>
+
+            <!-- Navegación de 4 Pestañas alineadas a la sustentación -->
+            <div class="crispdm-tabs" role="tablist">
+                <button type="button" class="crisp-tab active" data-tab="pipeline">
+                    <i data-lucide="database"></i> <span>1. Pipeline &amp; Datos</span>
+                </button>
+                <button type="button" class="crisp-tab" data-tab="eda">
+                    <i data-lucide="bar-chart-3"></i> <span>2. EDA &amp; Outliers</span>
+                </button>
+                <button type="button" class="crisp-tab" data-tab="ml">
+                    <i data-lucide="cpu"></i> <span>3. Torneo ML &amp; 2027</span>
+                </button>
+                <button type="button" class="crisp-tab" data-tab="math">
+                    <i data-lucide="sigma"></i> <span>4. Métodos Numéricos</span>
+                </button>
+            </div>
+
+            <!-- Cuerpo scrolleable por pestaña -->
+            <div class="crispdm-body">
+                <!-- PESTAÑA 1: PIPELINE & DATOS -->
+                <div id="tab-pipeline" class="crisp-pane active">
+                    <div class="medallion-flow">
+                        <div class="med-step bronze">
+                            <span class="med-tag">FASE 1–2 · BRONZE</span>
+                            <strong>5,956,452</strong>
+                            <p>Registros crudos integrados de SIVIGILA, IDEAM/NASA POWER y SISMED.</p>
+                        </div>
+                        <div class="med-arrow">→</div>
+                        <div class="med-step silver">
+                            <span class="med-tag">FASE 3 · SILVER</span>
+                            <strong>59,564 filas</strong>
+                            <p>Resolución Depto × Mes ISO (<code>%G-W%V-%u</code>) con <strong>0 valores nulos</strong>.</p>
+                        </div>
+                        <div class="med-arrow">→</div>
+                        <div class="med-step gold">
+                            <span class="med-tag">FASE 3–4 · GOLD</span>
+                            <strong>N = 1,522 Dengue</strong>
+                            <p>Escalamiento Híbrido (<code>RobustScaler</code> + <code>StandardScaler</code>) preservando picos.</p>
+                        </div>
+                        <div class="med-arrow">→</div>
+                        <div class="med-step prod">
+                            <span class="med-tag">FASE 5–6 · DESPLIEGUE</span>
+                            <strong>33 Deptos · 2017–2027</strong>
+                            <p>Gemelo digital WebGL 3D con alertas tempranas y simulador climático What-If.</p>
+                        </div>
+                    </div>
+
+                    <div class="crisp-two-col">
+                        <div class="crisp-card">
+                            <h4><i data-lucide="layers"></i> 3 Fuentes Oficiales Integradas</h4>
+                            <ul class="crisp-list">
+                                <li><strong>SIVIGILA (2017–2021):</strong> Casos semanales epidemiológicos convertidos a mes calendario exacto sin distorsión de 48 semanas.</li>
+                                <li><strong>IDEAM &amp; NASA POWER:</strong> Temperatura promedio (°C), lluvias acumuladas (mm) y humedad relativa (%) a nivel departamental.</li>
+                                <li><strong>SISMED:</strong> Comercialización real de analgésicos, antipiréticos y sales de rehidratación para cruzar demanda vs. stock.</li>
+                            </ul>
+                        </div>
+                        <div class="crisp-card accent-cyan">
+                            <h4><i data-lucide="sliders"></i> Ingeniería de Escalamiento Híbrido (<code>escalamiento.py</code>)</h4>
+                            <ul class="crisp-list">
+                                <li><strong>RobustScaler (Mediana / IQR):</strong> Lluvias y Medicamentos — protege el modelo de colas extremas y brotes.</li>
+                                <li><strong>StandardScaler (μ / σ):</strong> Temperatura y Humedad — variables continuas aproximadamente simétricas.</li>
+                                <li><strong>Sin escalar:</strong> Casos Reportados conserva su escala clínica real para disparar reglas logísticas.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PESTAÑA 2: EDA & OUTLIERS -->
+                <div id="tab-eda" class="crisp-pane">
+                    <div class="crisp-kpi-strip">
+                        <div class="ckpi"><span>Media vs Mediana</span><strong class="text-cyan">158.8 / 50.5</strong><small>Asimetría +3.89 · Curtosis 20.45</small></div>
+                        <div class="ckpi"><span>Outliers IQR (&gt;378.4)</span><strong class="text-red">184 brotes</strong><small>12.1% · Conservados como señal</small></div>
+                        <div class="ckpi"><span>Casos vs Meds</span><strong class="text-green">r = 0.848</strong><small>+12.42 unidades por caso</small></div>
+                        <div class="ckpi"><span>Top Riesgo Crítico</span><strong class="text-amber">Meta 56.2%</strong><small>Seguido de Chocó (38.3%)</small></div>
+                    </div>
+
+                    <div class="crisp-callout">
+                        <strong>Decisión metodológica clave:</strong> Los <strong>184 registros atípicos</strong> no son ruido ni errores de captura; son los <strong>brotes epidémicos reales</strong> (hasta 2,752 casos/mes). Eliminarlos habría ocultado precisamente las emergencias de desabastecimiento que este mapa 3D alerta.
+                    </div>
+
+                    <div class="crisp-gallery">
+                        <figure class="crisp-fig" data-zoom-src="../img/fig1_hist_casos_dengue.png" data-zoom-title="Figura 1 · Histograma de Casos de Dengue (Asimetría +3.89)">
+                            <img src="../img/fig1_hist_casos_dengue.png" alt="Histograma Dengue" loading="lazy">
+                            <figcaption><strong>Fig 1.</strong> Histograma · Asimetría +3.89</figcaption>
+                        </figure>
+                        <figure class="crisp-fig" data-zoom-src="../img/fig2_box_casos_outliers.png" data-zoom-title="Figura 2 · Boxplot IQR (184 Brotes Atípicos > 378.4 casos)">
+                            <img src="../img/fig2_box_casos_outliers.png" alt="Outliers IQR" loading="lazy">
+                            <figcaption><strong>Fig 2.</strong> Boxplot IQR · 184 Outliers Reales</figcaption>
+                        </figure>
+                        <figure class="crisp-fig" data-zoom-src="../img/fig4_scatter_casos_medicamentos.png" data-zoom-title="Figura 4 · Correlación Casos vs Medicamentos (r = 0.848)">
+                            <img src="../img/fig4_scatter_casos_medicamentos.png" alt="Scatter Casos vs Meds" loading="lazy">
+                            <figcaption><strong>Fig 4.</strong> Casos vs Meds (r = 0.848)</figcaption>
+                        </figure>
+                        <figure class="crisp-fig" data-zoom-src="../img/fig7_tasa_riesgo_desabastecimiento.png" data-zoom-title="Figura 7 · Tasa Histórica de Riesgo Alto por Departamento">
+                            <img src="../img/fig7_tasa_riesgo_desabastecimiento.png" alt="Tasa Riesgo Departamental" loading="lazy">
+                            <figcaption><strong>Fig 7.</strong> Riesgo Alto (Meta 56.2% · Chocó 38.3%)</figcaption>
+                        </figure>
+                    </div>
+                </div>
+
+                <!-- PESTAÑA 3: TORNEO ML & RANDOM FOREST 2027 -->
+                <div id="tab-ml" class="crisp-pane">
+                    <div class="crisp-two-col">
+                        <div class="crisp-card">
+                            <h4><i data-lucide="trophy"></i> Torneo Supervisado Oficial (75/25 Estratificado)</h4>
+                            <div class="crisp-table-wrap">
+                                <table class="crisp-table">
+                                    <thead>
+                                        <tr><th>Modelo</th><th>Acc Test</th><th>Brecha</th><th>Alto→Bajo</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr class="row-win"><td>🏆 Árbol Decisión (prof=8)</td><td><strong>71.65%</strong></td><td>0.015</td><td><strong>0 / 45</strong></td></tr>
+                                        <tr><td>KNN (Standard, k=11)</td><td>68.24%</td><td>0.056</td><td>2 / 45</td></tr>
+                                        <tr><td>Árbol Estándar (prof=4)</td><td>66.93%</td><td>-0.008</td><td>0 / 45</td></tr>
+                                        <tr class="row-warn"><td>Naive Bayes (Gaussian)</td><td>45.93%</td><td>0.053</td><td>3 / 45</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <p class="crisp-note">El Árbol ganador evita <strong>100% los errores catastróficos</strong> (clasificar un Riesgo Alto real como Riesgo Bajo) y entrega reglas auditables.</p>
+                        </div>
+
+                        <div class="crisp-card accent-purple">
+                            <h4><i data-lucide="sparkles"></i> Random Forest 2027 · Importancia Clima = 78.2%</h4>
+                            <div class="fi-bars">
+                                <div class="fi-item"><span>Humedad Ambiente</span><div class="fi-track"><div class="fi-bar cyan" style="width:92%"></div></div><strong>27.5%</strong></div>
+                                <div class="fi-item"><span>Temperatura Prom.</span><div class="fi-track"><div class="fi-bar amber" style="width:88%"></div></div><strong>26.4%</strong></div>
+                                <div class="fi-item"><span>Lluvias Acumuladas</span><div class="fi-track"><div class="fi-bar blue" style="width:81%"></div></div><strong>24.3%</strong></div>
+                                <div class="fi-item"><span>Año + Mes (Estacional)</span><div class="fi-track"><div class="fi-bar muted" style="width:72%"></div></div><strong>21.8%</strong></div>
+                            </div>
+                            <p class="crisp-note">Ensamble de <strong>100 árboles (Bagging)</strong> que estabiliza las proyecciones continuas de demanda hacia <strong>2025–2027</strong> en este mapa.</p>
+                        </div>
+                    </div>
+
+                    <div class="crisp-gallery">
+                        <figure class="crisp-fig" data-zoom-src="../img/modelos/supervisado/torneo_comparacion_metricas.png" data-zoom-title="Torneo Supervisado · Comparación de Métricas">
+                            <img src="../img/modelos/supervisado/torneo_comparacion_metricas.png" alt="Torneo Métricas" loading="lazy">
+                            <figcaption>Comparación Torneo ML</figcaption>
+                        </figure>
+                        <figure class="crisp-fig" data-zoom-src="../img/modelos/supervisado/torneo_matrices_confusion.png" data-zoom-title="Matrices de Confusión · 0 Errores Alto→Bajo en Árbol">
+                            <img src="../img/modelos/supervisado/torneo_matrices_confusion.png" alt="Matrices Confusión" loading="lazy">
+                            <figcaption>Matrices de Confusión</figcaption>
+                        </figure>
+                        <figure class="crisp-fig" data-zoom-src="../img/modelos/supervisado/arbol_decision_dengue.png" data-zoom-title="Árbol de Decisión Entrenado · Reglas Auditables">
+                            <img src="../img/modelos/supervisado/arbol_decision_dengue.png" alt="Árbol Visual" loading="lazy">
+                            <figcaption>Árbol de Reglas Visual</figcaption>
+                        </figure>
+                        <figure class="crisp-fig" data-zoom-src="../datos_procesados/pronostico_demanda_2027.png" data-zoom-title="Pronóstico Nacional de Demanda Farmacéutica 2027 (Random Forest)">
+                            <img src="../datos_procesados/pronostico_demanda_2027.png" alt="Pronóstico 2027" loading="lazy">
+                            <figcaption>Pronóstico Nacional 2027</figcaption>
+                        </figure>
+                    </div>
+                </div>
+
+                <!-- PESTAÑA 4: MÉTODOS NUMÉRICOS (TOLIMA 2019) -->
+                <div id="tab-math" class="crisp-pane">
+                    <div class="crisp-two-col">
+                        <div class="crisp-card accent-cyan">
+                            <h4><i data-lucide="trending-up"></i> Regresión Lineal (Mínimos Cuadrados · Tolima 2019)</h4>
+                            <div class="math-formula-box">ŷ = 8,098.21 + 12.5450 · x</div>
+                            <ul class="crisp-list">
+                                <li><strong>Bondad de ajuste:</strong> <code>R² = 90.05%</code> (<code>r = 0.9489</code>) sobre Semestre 1 (Ene–Jun 2019).</li>
+                                <li><strong>Interpretación logística:</strong> Cada caso adicional de Dengue suma <strong>+12.55 unidades</strong> sobre un consumo basal de 8,098 u.</li>
+                                <li><strong>Validación fuera de muestra (Julio):</strong> <code>29,011</code> predichas vs <code>29,729</code> reales SISMED → <strong>Error = 2.42%</strong>.</li>
+                            </ul>
+                        </div>
+
+                        <div class="crisp-card accent-purple">
+                            <h4><i data-lucide="activity"></i> Interpolación de Lagrange (P₂ vs P₅ · Tolima 2019)</h4>
+                            <div class="math-formula-box purple">P₂(x) = −10.9·x² + 198.1·x + 324.8</div>
+                            <ul class="crisp-list">
+                                <li><strong>Grado 2 (3 nodos: Ene, Mar, Jun):</strong> Estima mayo en <code>1,042.8</code> casos vs <code>1,099</code> reales (<strong>Error = 5.11%</strong>). Ideal para imputación local.</li>
+                                <li><strong>Advertencia Grado 5 (P₅):</strong> Oscila violentamente al extrapolar julio (<code>+7,562</code> casos, error &gt;350%), demostrando por qué usamos Regresión / ML para pronóstico futuro.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="crisp-action-bar">
+                        <p>¿Quieres verificar el brote real de <strong>Tolima · Julio 2019</strong> directamente sobre el mapa 3D?</p>
+                        <button type="button" id="btn-crisp-fly-tolima" class="btn-fly-tolima">
+                            <i data-lucide="navigation"></i> Volar a Tolima 2019-07 en el Mapa 3D
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lightbox de Zoom para Gráficas Reales de Python dentro del Modal CRISP-DM -->
+    <div id="crispdm-lightbox" class="crispdm-lightbox hidden">
+        <div class="lightbox-box glass-panel">
+            <div class="lightbox-head">
+                <h4 id="lightbox-title">Gráfica CRISP-DM</h4>
+                <button type="button" id="btn-close-lightbox" class="btn-close-modal">&times;</button>
+            </div>
+            <div class="lightbox-img-wrap">
+                <img id="lightbox-img" src="" alt="Vista ampliada">
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Atajos de Teclado para la Sustentación -->
+    <div id="shortcuts-modal" class="shortcuts-modal hidden">
+        <div class="shortcuts-card glass-panel">
+            <div class="shortcuts-head">
+                <h3><i data-lucide="keyboard"></i> Atajos de Exposición en Vivo</h3>
+                <button type="button" id="btn-close-shortcuts" class="btn-close-modal">&times;</button>
+            </div>
+            <div class="shortcuts-grid">
+                <div class="sc-item"><kbd>1</kbd>–<kbd>4</kbd><span>Ejecutar escenas del Tour del Jurado</span></div>
+                <div class="sc-item"><kbd>C</kbd><span>Abrir / Cerrar panel ADN CRISP-DM</span></div>
+                <div class="sc-item"><kbd>Espacio</kbd><span>Reproducir / Pausar línea de tiempo</span></div>
+                <div class="sc-item"><kbd>←</kbd> <kbd>→</kbd><span>Retroceder / Avanzar un mes</span></div>
+                <div class="sc-item"><kbd>H</kbd><span>Modo Cine (ocultar / mostrar HUD)</span></div>
+                <div class="sc-item"><kbd>R</kbd><span>Activar / Pausar rotación 3D orbital</span></div>
+                <div class="sc-item"><kbd>F</kbd><span>Alternar pantalla completa</span></div>
+                <div class="sc-item"><kbd>Esc</kbd><span>Cerrar modales, inspector o Modo Cine</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Carga del dataset optimizado (CORS free) -->
+    <script src="data/timeline_colombia_3d.js"></script>
+    <!-- Carga del GeoJSON Oficial de Departamentos de Colombia -->
+    <script src="data/colombia_deptos.js"></script>
+    <!-- Script principal de la aplicación -->
+    <script src="app.js"></script>
+</body>
+</html>
